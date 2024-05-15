@@ -20,6 +20,9 @@ const config = {
     extend: {
       fontFamily: {
         Playfair: ["Playfair Display", "serif"],
+        Poppins: ["Poppins", "sans-serif"],
+        PoetSenOne: ["Poet Sen One", "sans-serif"],
+        Ranade: ["Ranade", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
