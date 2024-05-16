@@ -446,9 +446,9 @@ export default function Dashboard() {
         <p className="font-semibold text-2xl">Expense History</p>
 
         <div className="flex justify-center items-center gap-5 flex-col lg:flex-row">
-          <div className="h-[500px] overflow-y-auto border my-8 rounded-lg lg:w-[80%] w-full bg-white flex flex-col gap-5 expense-box">
+          <div className="h-[500px] overflow-y-auto border my-8 rounded-lg lg:w-[80%] w-full bg-white flex flex-col expense-box gap-5">
             {Array.from({length: 8}).map((_, index) => (
-              <div className="py-5 px-8">
+              <div className="pt-5 px-8 bg-white">
                 <div className="flex items-center gap-3 justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex justify-center items-end flex-col">
@@ -486,7 +486,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-red-800 font-bold">300 USDC</div>
                 </div>
-                <Separator className="bg-red-400 text-red-400" />
+                <div className="bg-gray-200 h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3" />
               </div>
             ))}
           </div>
