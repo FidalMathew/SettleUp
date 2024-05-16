@@ -6,7 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {ArrowRight} from "lucide-react";
+import {
+  ArrowRight,
+  BadgePoundSterling,
+  CircleDollarSign,
+  Plus,
+  SmilePlus,
+} from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -23,10 +29,31 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartToolTip,
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import {useState} from "react";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
+import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import {useRouter} from "next/router";
 
 const data = [
   {
@@ -81,9 +108,135 @@ const data = [
 ];
 
 export default function Dashboard() {
+  const [openGroupCreation, setOpenGroupCreation] = useState(false);
+  const router = useRouter();
   return (
     <div className="h-fit w-full relative px-4 pt-8 md:px-14 flex flex-col gap-7 dashboard">
-      <div className="h-fit mb-6 w-full">
+      <Dialog open={openGroupCreation} onOpenChange={setOpenGroupCreation}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create a New Group</DialogTitle>
+            <DialogDescription className="flex flex-col justify-start gap-6">
+              <div className="mt-5 flex item-center gap-4">
+                <div className="h-16 w-24 bg-gray-200 rounded-md grid place-content-center">
+                  <SmilePlus />
+                </div>
+                <div className="flex flex-col justify-start gap-2 w-full">
+                  <Label htmlFor="groupName" className="text-xs ml-1">
+                    Group Name
+                  </Label>
+                  <Input
+                    id="groupName"
+                    name="groupName"
+                    placeholder="Enter Group Name"
+                    className="focus-visible:ring-0 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div className="w-full">
+                <Carousel
+                  opts={{
+                    align: "start",
+                  }}
+                  className="w-full"
+                >
+                  <RadioGroup defaultValue="card" className=" w-full">
+                    <CarouselContent className="w-full">
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="card"
+                            id="card"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="card"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              className="mb-3 h-6 w-6"
+                            >
+                              <rect width="20" height="14" x="2" y="5" rx="2" />
+                              <path d="M2 10h20" />
+                            </svg>
+                            Card
+                          </Label>
+                        </div>
+                      </CarouselItem>
+
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="paypal"
+                            id="paypal"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="paypal"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <CircleDollarSign className="mb-3 h-6 w-6" />
+                            Paypal
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="apple"
+                            id="apple"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="apple"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <BadgePoundSterling className="mb-3 h-6 w-6" />
+                            Apple
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="gpay"
+                            id="gpay"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="gpay"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <BadgePoundSterling className="mb-3 h-6 w-6" />
+                            GPay
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                    </CarouselContent>
+                  </RadioGroup>
+
+                  {/* <CarouselPrevious className="-right-[-10px]" />
+                  <CarouselNext /> */}
+                </Carousel>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="w-full">
+            <Button className="w-full" variant={"outline"}>
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="h-fit mb-6 w-full flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Avatar className="h-14 w-14">
             <AvatarImage src="/man.png" />
@@ -94,9 +247,21 @@ export default function Dashboard() {
             <p className="text-sm">Track your Group Expense</p>
           </div>
         </div>
-        {/* <p className="text-center translate-y-12 text-[#3D405B] font-Poppins font-semibold text-xl">
-          Overview
-        </p> */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <div
+                className="bg-black rounded-full h-12 w-12 grid place-content-center"
+                onClick={() => setOpenGroupCreation((prev) => !prev)}
+              >
+                <Plus className="text-white cursor-pointer" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add Group</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
         <Card className="w-[350px] h-fit border border-gray-500 bg-white">
@@ -129,8 +294,8 @@ export default function Dashboard() {
               </Avatar>
             </div>
             <div>
-              <div className="border-2 rounded-full border-black h-7 aspect-square">
-                <ArrowRight />
+              <div className="border grid place-content-center rounded-full border-black h-7 aspect-square">
+                <ArrowRight className="" />
               </div>
             </div>
           </CardFooter>
@@ -165,7 +330,7 @@ export default function Dashboard() {
               </Avatar>
             </div>
             <div>
-              <div className="border-2 rounded-full border-black h-7 aspect-square">
+              <div className="border grid place-content-center rounded-full border-black h-7 aspect-square">
                 <ArrowRight />
               </div>
             </div>
@@ -173,7 +338,17 @@ export default function Dashboard() {
         </Card>
       </div>
       <div className="">
-        <p className="font-semibold text-2xl">Groups</p>
+        <div className="flex justify-between">
+          <p className="font-semibold text-2xl">Groups</p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="mr-7"
+            onClick={() => setOpenGroupCreation((prev) => !prev)}
+          >
+            Add Group
+          </Button>
+        </div>
         <Carousel
           opts={{
             align: "start",
@@ -185,7 +360,7 @@ export default function Dashboard() {
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                 <div className="p-1">
                   <Card className="h-fit">
-                    <CardHeader className="flex pt-4 pb-2 h-fit">
+                    <CardHeader className="flex pt-4 pb-2 h-fit px-1 lg:px-4">
                       <div className="h-[10%] flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-12 w-12 -ml-4 first:ml-0">
@@ -193,10 +368,12 @@ export default function Dashboard() {
                             <AvatarFallback>JD</AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col justify-start">
-                            <p className="text-md font-semibold">
+                            <p className="text-sm lg:text-md font-semibold">
                               Trip to Bangalore
                             </p>
-                            <p className="text-xs">24 Jan 2024 - 28 Jan 2024</p>
+                            <p className="text-[10px] lg:text-xs">
+                              24 Jan 2024 - 28 Jan 2024
+                            </p>
                           </div>
                         </div>
                         <div className="flex gap-2 items-center">
@@ -211,7 +388,7 @@ export default function Dashboard() {
                           <p>Your Spending</p>
                           <p className="text-xl font-semibold">300 USDC</p>
                         </div>
-                        <div className="flex justify-start text-sm flex-col">
+                        <div className="flex items-end text-sm flex-col">
                           <p>Group Spending</p>
                           <p className="text-xl font-semibold">800 USDC</p>
                         </div>
@@ -246,7 +423,11 @@ export default function Dashboard() {
                           <p className="text-xs">4 Members</p>
                         </div>
 
-                        <Button size="sm" variant={"outline"}>
+                        <Button
+                          size="sm"
+                          variant={"outline"}
+                          onClick={() => router.push(`/group/123`)}
+                        >
                           View Group
                         </Button>
                       </div>
@@ -266,7 +447,7 @@ export default function Dashboard() {
 
         <div className="flex justify-center items-center gap-5 flex-col lg:flex-row">
           <div className="h-[500px] overflow-y-auto border my-8 rounded-lg lg:w-[80%] w-full bg-white flex flex-col gap-5 expense-box">
-            {Array.from({length: 5}).map((_, index) => (
+            {Array.from({length: 8}).map((_, index) => (
               <div className="py-5 px-8">
                 <div className="flex items-center gap-3 justify-between">
                   <div className="flex items-center gap-3">
@@ -309,7 +490,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <div className="h-[500px] border my-8 rounded-lg lg:w-[80%] w-full bg-white pt-8 pb-8">
+          <div className="h-[500px] border my-8 rounded-lg lg:w-[80%] w-full bg-white pt-8 pb-8 pl-7">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 width={500}
@@ -324,8 +505,15 @@ export default function Dashboard() {
               >
                 {/* <CartesianGrid strokeDasharray="3 3" /> */}
                 <XAxis dataKey={"name"} />
-                <YAxis />
-                <Tooltip />
+                <YAxis
+                  label={{
+                    value: "Amount in USDC",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: -10,
+                  }}
+                />
+                <RechartToolTip />
                 {/* <Legend />   */}
                 <Bar dataKey="pv" stackId="a" fill="#E07A5F" />
                 <Bar dataKey="uv" stackId="a" fill="#82ca9d" />
