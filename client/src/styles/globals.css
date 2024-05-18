@@ -102,3 +102,16 @@
   background-color: rgb(253 186 116);
   border-radius: 999px;
 }
+
+@layer base {
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+input::-ms-clear {
+  display: none;
+}
