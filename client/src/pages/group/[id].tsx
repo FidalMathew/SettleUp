@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/select";
 import {Badge} from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
+import {Field, Form, Formik} from "formik";
 
 export default function Groups() {
   const router = useRouter();
@@ -52,6 +53,7 @@ export default function Groups() {
   const [addMemberBox, setAddMemberBox] = useState(false);
   const [date, setDate] = useState<Date>();
   const [openAIBox, setOpenAIBox] = useState(false);
+  const [amount, setAmount] = useState(1000);
 
   return (
     <div className="h-screen w-full">
@@ -61,311 +63,318 @@ export default function Groups() {
         onOpenChange={setAddExpenseBox}
       >
         <ResponsiveDialogComponentContent className="h-fit">
-          <ResponsiveDialogComponentHeader>
+          <ResponsiveDialogComponentHeader className="w-[92%]">
             <ResponsiveDialogComponentTitle>
               <p>Add Expense</p>
             </ResponsiveDialogComponentTitle>
             <ResponsiveDialogComponentDescription className="">
-              <div className="mt-5 w-full">
-                <div className="flex items-end justify-center text-6xl gap-1 w-full mb-6">
-                  <Input
-                    type="text"
-                    placeholder="0"
-                    className="focus-visible:ring-0 border-none rounded-none text-6xl h-24 text-center w-[180px]"
-                    inputMode="numeric"
-                    maxLength={4}
-                  />
-                  <p className="text-3xl -translate-y-4">USDC</p>
-                </div>
-              </div>
-              <div className="flex justify-between w-[90%] gap-3 m-auto">
-                <div className="w-[60%]">
-                  <Input
-                    type="text"
-                    placeholder="Description"
-                    className="text-sm focus-visible:ring-0"
-                  />
-                </div>
-                <div className="w-[40%]">
-                  <Select>
-                    <SelectTrigger className="w-full focus-visible:ring-0 active:ring-0 focus:ring-0">
-                      <SelectValue placeholder="Paid By" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="jaydeep">
-                          {/* picture and text */}
-
-                          <div className="flex items-center gap-3">
-                            <img src="/man.png" alt="man" className="h-6 w-6" />
-                            <p>Fidal</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="fidal">
-                          {/* picture and text */}
-
-                          <div className="flex items-center gap-3">
-                            <img src="/man.png" alt="man" className="h-6 w-6" />
-                            <p>Jaydeep</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="manvik">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src="/user.png"
-                              alt="user"
-                              className="h-6 w-6"
-                            />
-                            <p>Manvik</p>
-                          </div>
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex items-center mt-5 w-[90%] m-auto gap-3">
-                <div className="w-[60%]">
-                  <Select>
-                    <SelectTrigger className="w-full focus-visible:ring-0 active:ring-0 focus:ring-0">
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Category</SelectLabel>
-                        <SelectItem value="food">
-                          {/* picture and text */}
-
-                          <div className="flex items-center gap-3">
-                            <img src="/burger.png" className="h-6 w-6" />
-                            <p>Food</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="fuel">
-                          <div className="flex items-center gap-3">
-                            <img src="/fuel.png" className="h-6 w-6" />
-                            <p>Fuel</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="shopping">
-                          <div className="flex items-center gap-3">
-                            <img src="/shopping.png" className="h-6 w-6" />
-                            <p>Shopping</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="cab">
-                          <div className="flex items-center gap-3">
-                            <img src="/car.png" className="h-6 w-6" />
-                            <p>Cab</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="grocery">
-                          <div className="flex items-center gap-3">
-                            <img src="/vegetable.png" className="h-6 w-6" />
-                            <p>Grocery</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="train">
-                          <div className="flex items-center gap-3">
-                            <img src="/train.png" className="h-6 w-6" />
-                            <p>Train</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="sports">
-                          <div className="flex items-center gap-3">
-                            <img src="/sports.png" className="h-6 w-6" />
-                            <p>Sports</p>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="temple">
-                          <div className="flex items-center gap-3">
-                            <img src="/temple.png" className="h-6 w-6" />
-                            <p>Temple</p>
-                          </div>
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-[40%]">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" mode="single" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
+              <Formik
+                initialValues={{
+                  amount: 0,
+                  description: "",
+                  paidBy: "",
+                  category: "",
+                  date: new Date(),
+                  splitArray: [],
+                }}
+                onSubmit={(values, _) => console.log(values)}
+              >
+                {(formik) => (
+                  <Form className="flex flex-col">
+                    <div className="flex items-end justify-center text-6xl gap-1 w-full mb-6">
+                      <Field
+                        as={Input}
+                        type="text"
+                        placeholder="0"
+                        className="focus-visible:ring-0 border-none rounded-none text-6xl h-24 text-center w-[180px]"
+                        inputMode="numeric"
+                        id="amount"
+                        name="amount"
+                        maxLength={4}
                       />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              <div className="p-7 flex flex-col gap-3">
-                <p className="text-lg font-bold text-center">Split</p>
-                <Tabs
-                  defaultValue="equally"
-                  className="w-full flex flex-col items-center"
-                >
-                  <TabsList className="rounded-full">
-                    <TabsTrigger
-                      value="equally"
-                      className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
-                    >
-                      Equally
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="unequally"
-                      className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
-                    >
-                      Unequally
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent
-                    value="equally"
-                    className="w-full flex items-start flex-col focus-visible:ring-0"
-                  >
-                    <p className="py-3">Select to Split</p>
-                    <Carousel
-                      opts={{
-                        align: "start",
-                      }}
-                      className="w-full"
-                    >
-                      <CarouselContent className="w-full">
-                        <CarouselItem className="basis-1/3">
-                          <div className="flex flex-col gap-1">
-                            <Checkbox id="option1" className="peer sr-only" />
-                            <Label
-                              htmlFor="option1"
-                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
-                            >
-                              <img
-                                src="/man.png"
-                                alt="man"
-                                className="mb-3 h-8  w-8 "
-                              />
-                              <div className="flex flex-col items-center gap-2">
-                                <p>Fidal</p>
-                                <p>23 USDC</p>
-                              </div>
-                            </Label>
-                          </div>
-                        </CarouselItem>
-
-                        <CarouselItem className="basis-1/3">
-                          <div className="">
-                            <Checkbox id="option2" className="peer sr-only" />
-                            <Label
-                              htmlFor="option2"
-                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
-                            >
-                              <img
-                                src="/man.png"
-                                alt="man"
-                                className="mb-3 h-8  w-8 "
-                              />
-                              <div className="flex flex-col items-center gap-2">
-                                <p>Fidal</p>
-                                <p>23 USDC</p>
-                              </div>
-                            </Label>
-                          </div>
-                        </CarouselItem>
-                        <CarouselItem className="basis-1/3">
-                          <div className="">
-                            <Checkbox id="option3" className="peer sr-only" />
-                            <Label
-                              htmlFor="option3"
-                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
-                            >
-                              <img
-                                src="/man.png"
-                                alt="man"
-                                className="mb-3 h-8  w-8 "
-                              />
-                              <div className="flex flex-col items-center gap-2">
-                                <p>Fidal</p>
-                                <p>23 USDC</p>
-                              </div>
-                            </Label>
-                          </div>
-                        </CarouselItem>
-                        <CarouselItem className="basis-1/3">
-                          <div className="">
-                            <Checkbox id="option4" className="peer sr-only" />
-                            <Label
-                              htmlFor="option4"
-                              className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
-                            >
-                              <img
-                                src="/man.png"
-                                alt="man"
-                                className="mb-3 h-8  w-8 "
-                              />
-                              <div className="flex flex-col items-center gap-2">
-                                <p>Fidal</p>
-                                <p>23 USDC</p>
-                              </div>
-                            </Label>
-                          </div>
-                        </CarouselItem>
-                      </CarouselContent>
-                    </Carousel>
-                  </TabsContent>
-                  <TabsContent value="unequally" className="w-full relative">
-                    <div className="h-[30px] w-full absolute bottom-0 right-0 border bg-white z-50 rounded-t-md flex justify-between px-4 text-xs items-center">
-                      <p>People 1/2</p>
-                      <p>Amount Remaining: 100 USDC</p>
+                      <p className="text-3xl -translate-y-4">USDC</p>
                     </div>
-                    <div className="flex flex-col gap-3 border p-2 h-[250px] overflow-y-auto expense-box placeholder pb-[33px]">
-                      {[1, 2, 3, 4, 5, 6].map((_, index) => (
-                        <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50">
-                          <div className="flex gap-3 items-center">
-                            <Checkbox
-                              id="terms2"
-                              className="data-[state=checked]:bg-[#81B29A] focus-visible:ring-0 border border-gray-300 bg-gray-200"
-                            />
-                            <Label
-                              htmlFor="terms2"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            />
-                            <div className="flex gap-4 items-center">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src="/woman.png" />
-                                <AvatarFallback>JD</AvatarFallback>
-                              </Avatar>
+                    <div className="flex justify-between w-[90%] gap-3 m-auto">
+                      <div className="w-[60%]">
+                        <Field
+                          as={Input}
+                          type="text"
+                          placeholder="Description"
+                          className="text-sm focus-visible:ring-0"
+                          id="description"
+                          name="description"
+                        />
+                      </div>
+                      <div className="w-[40%]">
+                        <Select
+                          onValueChange={(value) => {
+                            formik.setFieldValue("paidBy", value);
+                          }}
+                        >
+                          <SelectTrigger className="w-full focus-visible:ring-0 active:ring-0 focus:ring-0">
+                            <SelectValue placeholder="Paid By" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem value="jaydeep">
+                                {/* picture and text */}
 
-                              <p>You</p>
-                            </div>
-                          </div>
-                          <Input
-                            type="text"
-                            placeholder="0"
-                            className="w-20 focus-visible:ring-0"
-                          />
-                        </div>
-                      ))}
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src="/man.png"
+                                    alt="man"
+                                    className="h-6 w-6"
+                                  />
+                                  <p>Fidal</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="fidal">
+                                {/* picture and text */}
+
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src="/man.png"
+                                    alt="man"
+                                    className="h-6 w-6"
+                                  />
+                                  <p>Jaydeep</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="manvik">
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src="/user.png"
+                                    alt="user"
+                                    className="h-6 w-6"
+                                  />
+                                  <p>Manvik</p>
+                                </div>
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                  </TabsContent>
-                </Tabs>
 
-                <Button className="bg-[#81B29A] hover:bg-[#81B29A] mt-5 w-full">
-                  Submit Expense
-                </Button>
-              </div>
+                    <div className="flex items-center mt-5 w-[90%] m-auto gap-3">
+                      <div className="w-[60%]">
+                        <Select
+                          onValueChange={(value) => {
+                            formik.setFieldValue("category", value);
+                          }}
+                        >
+                          <SelectTrigger className="w-full focus-visible:ring-0 active:ring-0 focus:ring-0">
+                            <SelectValue placeholder="Select Category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Category</SelectLabel>
+                              <SelectItem value="food">
+                                {/* picture and text */}
+
+                                <div className="flex items-center gap-3">
+                                  <img src="/burger.png" className="h-6 w-6" />
+                                  <p>Food</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="fuel">
+                                <div className="flex items-center gap-3">
+                                  <img src="/fuel.png" className="h-6 w-6" />
+                                  <p>Fuel</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="shopping">
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src="/shopping.png"
+                                    className="h-6 w-6"
+                                  />
+                                  <p>Shopping</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="cab">
+                                <div className="flex items-center gap-3">
+                                  <img src="/car.png" className="h-6 w-6" />
+                                  <p>Cab</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="grocery">
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src="/vegetable.png"
+                                    className="h-6 w-6"
+                                  />
+                                  <p>Grocery</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="train">
+                                <div className="flex items-center gap-3">
+                                  <img src="/train.png" className="h-6 w-6" />
+                                  <p>Train</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="sports">
+                                <div className="flex items-center gap-3">
+                                  <img src="/sports.png" className="h-6 w-6" />
+                                  <p>Sports</p>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="temple">
+                                <div className="flex items-center gap-3">
+                                  <img src="/temple.png" className="h-6 w-6" />
+                                  <p>Temple</p>
+                                </div>
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-[40%]">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !date && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon
+                                className="mr-2 h-4 w-4"
+                                mode="single"
+                              />
+                              {date ? (
+                                format(date, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={formik.values.date}
+                              onSelect={(date) => {
+                                formik.setFieldValue("date", date);
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <div className="p-7 pb-3 flex flex-col gap-3">
+                      <p className="text-lg font-bold text-center">Split</p>
+                      <Tabs
+                        defaultValue="equally"
+                        className="w-full flex flex-col items-center"
+                      >
+                        <TabsList className="rounded-full">
+                          <TabsTrigger
+                            value="equally"
+                            className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
+                          >
+                            Equally
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="unequally"
+                            className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
+                          >
+                            Unequally
+                          </TabsTrigger>
+                        </TabsList>
+                        <TabsContent
+                          value="equally"
+                          className="w-full flex items-start flex-col focus-visible:ring-0"
+                        >
+                          <p className="py-3">Select to Split</p>
+                          <Carousel
+                            opts={{
+                              align: "start",
+                            }}
+                            className="w-full"
+                          >
+                            <CarouselContent className="w-full">
+                              {[1, 2, 3, 4, 5].map((item, index) => (
+                                <CarouselItem className="basis-1/3" key={index}>
+                                  <div className="flex flex-col gap-1">
+                                    <Field
+                                      as={Checkbox}
+                                      id={`splitArray${index + 1}`}
+                                      value={`splitArray${index + 1}`}
+                                      className="peer sr-only"
+                                      name="splitArray"
+                                    />
+                                    <Label
+                                      htmlFor={`splitArray${index + 1}`}
+                                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
+                                    >
+                                      <img
+                                        src="/man.png"
+                                        alt="man"
+                                        className="mb-3 h-8  w-8 "
+                                      />
+                                      <div className="flex flex-col items-center gap-2">
+                                        <p>Fidal</p>
+                                        <p>23 USDC</p>
+                                      </div>
+                                    </Label>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                          </Carousel>
+                        </TabsContent>
+                        <TabsContent
+                          value="unequally"
+                          className="w-full relative"
+                        >
+                          <div className="h-[30px] w-full absolute bottom-0 right-0 border bg-white z-50 rounded-t-md flex justify-between px-4 text-xs items-center">
+                            <p>People 1/2</p>
+                            <p>Amount Remaining: 100 USDC</p>
+                          </div>
+                          <div className="flex flex-col gap-3 border p-2 h-[250px] overflow-y-auto expense-box placeholder pb-[33px]">
+                            {[1, 2, 3, 4, 5, 6].map((_, index) => (
+                              <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50">
+                                <div className="flex gap-3 items-center">
+                                  <Checkbox
+                                    id="terms2"
+                                    className="data-[state=checked]:bg-[#81B29A] focus-visible:ring-0 border border-gray-300 bg-gray-200"
+                                  />
+                                  <Label
+                                    htmlFor="terms2"
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                  />
+                                  <div className="flex gap-4 items-center">
+                                    <Avatar className="h-10 w-10">
+                                      <AvatarImage src="/woman.png" />
+                                      <AvatarFallback>JD</AvatarFallback>
+                                    </Avatar>
+
+                                    <p>You</p>
+                                  </div>
+                                </div>
+                                <Input
+                                  type="text"
+                                  placeholder="0"
+                                  className="w-20 focus-visible:ring-0"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+
+                      <Button
+                        className="bg-[#81B29A] hover:bg-[#81B29A] mt-5 w-full"
+                        type="submit"
+                      >
+                        Submit Expense
+                      </Button>
+                    </div>
+                  </Form>
+                )}
+              </Formik>
             </ResponsiveDialogComponentDescription>
           </ResponsiveDialogComponentHeader>
         </ResponsiveDialogComponentContent>
@@ -438,7 +447,7 @@ export default function Groups() {
         />
       </div>
 
-      <div className="px-10 lg:px-24 -translate-y-6 flex justify-between flex-col lg:flex-row">
+      <div className="px-10 lg:px-24 -translate-y-6 flex justify-between flex-col md:flex-row">
         <div className="flex items-center gap-3">
           <Avatar className="h-32 w-32 lg:h-[150px] lg:w-[150px] -translate-y-2 lg:-translate-y-6">
             <AvatarImage src="/beach.png" />

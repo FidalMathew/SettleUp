@@ -2,18 +2,35 @@ import * as React from "react";
 import {addDays, format} from "date-fns";
 import {Calendar as CalendarIcon} from "lucide-react";
 import {DateRange} from "react-day-picker";
-
+import {FC, useEffect, useState} from "react";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import {Calendar} from "@/components/ui/calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {FormikProps} from "formik";
 
-export function DatePickerWithRange({
+interface MyFormValues {
+  groupName: string;
+  dateRange: {
+    from: Date;
+    to: Date;
+  };
+  category: string;
+}
+
+interface DatePickerWithRangeProps {
+  className?: string;
+
+  formik?: FormikProps<MyFormValues>;
+}
+
+export const DatePickerWithRange: FC<DatePickerWithRangeProps> = ({
   className,
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
+  formik,
+}) => {
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 20),
   });
 
   return (
@@ -48,12 +65,14 @@ export function DatePickerWithRange({
             initialFocus
             mode="range"
             defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
+            selected={formik?.values.dateRange}
+            onSelect={(range) => {
+              formik?.setFieldValue("dateRange", range);
+            }}
             numberOfMonths={2}
           />
         </PopoverContent>
       </Popover>
     </div>
   );
-}
+};

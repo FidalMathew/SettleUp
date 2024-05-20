@@ -7,7 +7,6 @@ export default function Home() {
   const router = useRouter();
 
   const {login, user, logout} = usePrivy();
-  console.log(user, "user");
   return (
     <div className="h-screen w-full">
       <div className="h-[80px] w-full flex items-center justify-between lg:gap-5 lg:pr-32 lg:pl-32 px-6">

@@ -5,9 +5,17 @@ import {PrivyProvider} from "@privy-io/react-auth";
 import ContractFunctionContextProvider from "@/Context/ContractContext";
 import AIContextProvider from "@/Context/AIContext";
 import {useRouter} from "next/router";
+import {useEffect, useState} from "react";
 
 export default function App({Component, pageProps}: AppProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   return (
     <PrivyProvider
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID!}
