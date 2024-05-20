@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Input} from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
@@ -46,6 +46,12 @@ import {Badge} from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
 import {Field, Form, Formik} from "formik";
 
+interface SplitArray {
+  name: string;
+  amount: number;
+  isChecked: boolean;
+}
+
 export default function Groups() {
   const router = useRouter();
 
@@ -54,6 +60,29 @@ export default function Groups() {
   const [date, setDate] = useState<Date>();
   const [openAIBox, setOpenAIBox] = useState(false);
   const [amount, setAmount] = useState(1000);
+  const [splitArray, setSplitArray] = useState([] as SplitArray[]);
+  const [numberOfChecked, setNumberOfChecked] = useState(0);
+
+  const MembersArray = [{name: "Manvik"}, {name: "Jaydeep"}, {name: "Fidal"}];
+  useEffect(() => {
+    const newArray = Array.from({length: MembersArray.length}).map(
+      (_, index) => {
+        return {
+          name: MembersArray[index].name,
+          amount: 0,
+          isChecked: false,
+        };
+      }
+    );
+
+    setSplitArray(newArray);
+  }, []);
+
+  // as the splitArray changes, we need to update the number of checked members
+  useEffect(() => {
+    const checked = splitArray.filter((item) => item.isChecked);
+    setNumberOfChecked(checked.length);
+  }, [splitArray]);
 
   return (
     <div className="h-screen w-full">
@@ -63,7 +92,7 @@ export default function Groups() {
         onOpenChange={setAddExpenseBox}
       >
         <ResponsiveDialogComponentContent className="h-fit">
-          <ResponsiveDialogComponentHeader className="w-[92%]">
+          <ResponsiveDialogComponentHeader className="w-full">
             <ResponsiveDialogComponentTitle>
               <p>Add Expense</p>
             </ResponsiveDialogComponentTitle>
@@ -75,7 +104,7 @@ export default function Groups() {
                   paidBy: "",
                   category: "",
                   date: new Date(),
-                  splitArray: [],
+                  splitArray: splitArray,
                 }}
                 onSubmit={(values, _) => console.log(values)}
               >
@@ -295,19 +324,31 @@ export default function Groups() {
                             className="w-full"
                           >
                             <CarouselContent className="w-full">
-                              {[1, 2, 3, 4, 5].map((item, index) => (
+                              {MembersArray.map((item, index) => (
                                 <CarouselItem className="basis-1/3" key={index}>
                                   <div className="flex flex-col gap-1">
-                                    <Field
-                                      as={Checkbox}
-                                      id={`splitArray${index + 1}`}
-                                      value={`splitArray${index + 1}`}
+                                    <Checkbox
                                       className="peer sr-only"
-                                      name="splitArray"
+                                      id={`splitArray${index + 1}`}
+                                      checked={
+                                        splitArray[index] &&
+                                        splitArray[index].isChecked
+                                      }
+                                      onCheckedChange={(checked: boolean) => {
+                                        setSplitArray((prev) => {
+                                          const newArray = [...prev];
+                                          newArray[index].isChecked = checked;
+                                          formik.setFieldValue(
+                                            "splitArray",
+                                            newArray
+                                          );
+                                          return newArray;
+                                        });
+                                      }}
                                     />
                                     <Label
                                       htmlFor={`splitArray${index + 1}`}
-                                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
+                                      className="flex w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                                     >
                                       <img
                                         src="/man.png"
@@ -315,8 +356,18 @@ export default function Groups() {
                                         className="mb-3 h-8  w-8 "
                                       />
                                       <div className="flex flex-col items-center gap-2">
-                                        <p>Fidal</p>
-                                        <p>23 USDC</p>
+                                        <p>{item.name}</p>
+                                        {splitArray[index] &&
+                                        splitArray[index].isChecked ? (
+                                          <p className="text-xs">
+                                            {(amount / numberOfChecked).toFixed(
+                                              2
+                                            )}{" "}
+                                            USDC
+                                          </p>
+                                        ) : (
+                                          <p>0 USDC</p>
+                                        )}
                                       </div>
                                     </Label>
                                   </div>
