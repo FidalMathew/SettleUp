@@ -12,6 +12,7 @@ import {
   CircleDollarSign,
   Plus,
   SmilePlus,
+  Wallet,
 } from "lucide-react";
 import {
   Carousel,
@@ -49,11 +50,29 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {useRouter} from "next/router";
+import {DatePickerWithRange} from "@/components/ui/DateRangePicker";
+import {
+  ResponsiveDialogComponent,
+  ResponsiveDialogComponentContent,
+  ResponsiveDialogComponentDescription,
+  ResponsiveDialogComponentHeader,
+  ResponsiveDialogComponentTitle,
+} from "@/components/ui/ResponsiveDialog";
+import {usePrivy} from "@privy-io/react-auth";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const data = [
   {
@@ -110,131 +129,216 @@ const data = [
 export default function Dashboard() {
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
   const router = useRouter();
+  const {user, logout} = usePrivy();
+  useEffect(() => {
+    if (!user) {
+      router.push("/");
+    }
+  }, [user]);
+
   return (
     <div className="h-fit w-full relative px-4 pt-8 md:px-14 flex flex-col gap-7 dashboard">
-      <Dialog open={openGroupCreation} onOpenChange={setOpenGroupCreation}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create a New Group</DialogTitle>
-            <DialogDescription className="flex flex-col justify-start gap-6">
+      <ResponsiveDialogComponent
+        open={openGroupCreation}
+        onOpenChange={setOpenGroupCreation}
+      >
+        <ResponsiveDialogComponentContent>
+          <ResponsiveDialogComponentHeader>
+            <ResponsiveDialogComponentTitle>
+              Create a New Group
+            </ResponsiveDialogComponentTitle>
+            <ResponsiveDialogComponentDescription className="flex flex-col justify-start gap-6">
               <div className="mt-5 flex item-center gap-4">
-                <div className="h-16 w-24 bg-gray-200 rounded-md grid place-content-center">
-                  <SmilePlus />
-                </div>
-                <div className="flex flex-col justify-start gap-2 w-full">
-                  <Label htmlFor="groupName" className="text-xs ml-1">
-                    Group Name
+                {/* <div>
+                  <Input type="file" id="groupImage" className="hidden" />
+                  <Label htmlFor="groupImage" className="cursor-pointer">
+                    <div className="h-16 w-20 bg-gray-200 rounded-md grid place-content-center">
+                      <SmilePlus />
+                    </div>
                   </Label>
+                </div> */}
+                <div className="flex flex-col justify-start gap-2 w-full">
+                  {/* <Label htmlFor="groupName" className="text-xs ml-1">
+                    Group Name
+                  </Label> */}
                   <Input
                     id="groupName"
                     name="groupName"
                     placeholder="Enter Group Name"
-                    className="focus-visible:ring-0 rounded-lg"
+                    className="focus-visible:ring-0 rounded-lg w-[97%]"
                   />
                 </div>
               </div>
               <div className="w-full">
-                <Carousel
-                  opts={{
-                    align: "start",
-                  }}
-                  className="w-full"
-                >
-                  <RadioGroup defaultValue="card" className=" w-full">
+                <DatePickerWithRange className="" />
+              </div>
+              <div className="w-full">
+                <Carousel opts={{align: "start"}} className="w-full">
+                  <RadioGroup defaultValue="food" className="w-full">
                     <CarouselContent className="w-full">
                       <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                         <div>
                           <RadioGroupItem
-                            value="card"
-                            id="card"
+                            value="food"
+                            id="food"
                             className="peer sr-only"
                           />
                           <Label
-                            htmlFor="card"
+                            htmlFor="food"
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              className="mb-3 h-6 w-6"
-                            >
-                              <rect width="20" height="14" x="2" y="5" rx="2" />
-                              <path d="M2 10h20" />
-                            </svg>
-                            Card
-                          </Label>
-                        </div>
-                      </CarouselItem>
-
-                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                        <div>
-                          <RadioGroupItem
-                            value="paypal"
-                            id="paypal"
-                            className="peer sr-only"
-                          />
-                          <Label
-                            htmlFor="paypal"
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                          >
-                            <CircleDollarSign className="mb-3 h-6 w-6" />
-                            Paypal
+                            <div className="flex items-center flex-col">
+                              <img src="/burger.png" className="h-6 w-6 mb-3" />
+                              <p>Food</p>
+                            </div>
                           </Label>
                         </div>
                       </CarouselItem>
                       <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                         <div>
                           <RadioGroupItem
-                            value="apple"
-                            id="apple"
+                            value="fuel"
+                            id="fuel"
                             className="peer sr-only"
                           />
                           <Label
-                            htmlFor="apple"
+                            htmlFor="fuel"
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                           >
-                            <BadgePoundSterling className="mb-3 h-6 w-6" />
-                            Apple
+                            <div className="flex items-center flex-col">
+                              <img src="/fuel.png" className="h-6 w-6 mb-3" />
+                              <p>Fuel</p>
+                            </div>
                           </Label>
                         </div>
                       </CarouselItem>
                       <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                         <div>
                           <RadioGroupItem
-                            value="gpay"
-                            id="gpay"
+                            value="shopping"
+                            id="shopping"
                             className="peer sr-only"
                           />
                           <Label
-                            htmlFor="gpay"
+                            htmlFor="shopping"
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                           >
-                            <BadgePoundSterling className="mb-3 h-6 w-6" />
-                            GPay
+                            <div className="flex items-center flex-col">
+                              <img
+                                src="/shopping.png"
+                                className="h-6 w-6 mb-3"
+                              />
+                              <p>Shopping</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="cab"
+                            id="cab"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="cab"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <div className="flex items-center flex-col">
+                              <img src="/car.png" className="h-6 w-6 mb-3" />
+                              <p>Cab</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="grocery"
+                            id="grocery"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="grocery"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <div className="flex items-center flex-col">
+                              <img
+                                src="/vegetable.png"
+                                className="h-6 w-6 mb-3"
+                              />
+                              <p>Grocery</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="train"
+                            id="train"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="train"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <div className="flex items-center flex-col">
+                              <img src="/train.png" className="h-6 w-6 mb-3" />
+                              <p>Train</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="sports"
+                            id="sports"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="sports"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <div className="flex items-center flex-col">
+                              <img src="/sports.png" className="h-6 w-6 mb-3" />
+                              <p>Sports</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </CarouselItem>
+                      <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                        <div>
+                          <RadioGroupItem
+                            value="temple"
+                            id="temple"
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor="temple"
+                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                          >
+                            <div className="flex items-center flex-col">
+                              <img src="/temple.png" className="h-6 w-6 mb-3" />
+                              <p>Temple</p>
+                            </div>
                           </Label>
                         </div>
                       </CarouselItem>
                     </CarouselContent>
                   </RadioGroup>
-
-                  {/* <CarouselPrevious className="-right-[-10px]" />
-                  <CarouselNext /> */}
                 </Carousel>
               </div>
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogComponentDescription>
+          </ResponsiveDialogComponentHeader>
           <DialogFooter className="w-full">
-            <Button className="w-full" variant={"outline"}>
+            <Button className="bg-[#81B29A] hover:bg-[#81B29A] w-full">
               Create
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogComponentContent>
+      </ResponsiveDialogComponent>
 
       <div className="h-fit mb-6 w-full flex justify-between items-center">
         <div className="flex items-center gap-4">
@@ -247,21 +351,41 @@ export default function Dashboard() {
             <p className="text-sm">Track your Group Expense</p>
           </div>
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <div
-                className="bg-black rounded-full h-12 w-12 grid place-content-center"
-                onClick={() => setOpenGroupCreation((prev) => !prev)}
-              >
-                <Plus className="text-white cursor-pointer" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add Group</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-3 flex-row-reverse">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <div
+                  className="bg-black rounded-full h-12 w-12 grid place-content-center"
+                  onClick={() => setOpenGroupCreation((prev) => !prev)}
+                >
+                  <Plus className="text-white cursor-pointer" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add Group</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Button variant={"outline"}>
+                  <Wallet className="mr-2 h-4 w-4" />{" "}
+                  {user &&
+                    user.wallet?.address.slice(0, 6) +
+                      "..." +
+                      user.wallet?.address.slice(-4)}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={logout} className="text-red-400">
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
       </div>
       <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
         <Card className="w-[350px] h-fit border border-gray-500 bg-white">
@@ -355,7 +479,7 @@ export default function Dashboard() {
           }}
           className="w-full p-6"
         >
-          <CarouselContent>
+          <CarouselContent className="">
             {Array.from({length: 5}).map((_, index) => (
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                 <div className="p-1">

@@ -1,19 +1,7 @@
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {
-  BadgePoundSterling,
-  Bold,
-  CalendarIcon,
-  CircleDollarSign,
-  DollarSign,
-  Euro,
-  Italic,
-  Plus,
-  Sparkles,
-  Underline,
-  UserRoundPlus,
-} from "lucide-react";
+import {CalendarIcon, Plus, Sparkles} from "lucide-react";
 import {useRouter} from "next/router";
 import {
   Tooltip,
@@ -21,21 +9,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
 import {useState} from "react";
 import {Input} from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
   ResponsiveDialogComponentDescription,
+  ResponsiveDialogComponentFooter,
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
@@ -62,16 +42,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {Badge} from "@/components/ui/badge";
+import SearchBox from "@/components/AIComponents/SearchBox";
 
 export default function Groups() {
   const router = useRouter();
-  const [openAIBox, setOpenAIBox] = useState(false);
+
   const [addExpenseBox, setAddExpenseBox] = useState(false);
   const [addMemberBox, setAddMemberBox] = useState(false);
   const [date, setDate] = useState<Date>();
+  const [openAIBox, setOpenAIBox] = useState(false);
 
   return (
     <div className="h-screen w-full">
+      <SearchBox openAIBox={openAIBox} setOpenAIBox={setOpenAIBox} />
       <ResponsiveDialogComponent
         open={addExpenseBox}
         onOpenChange={setAddExpenseBox}
@@ -94,12 +78,51 @@ export default function Groups() {
                   <p className="text-3xl -translate-y-4">USDC</p>
                 </div>
               </div>
-              <div className="w-full flex justify-center">
-                <Input
-                  type="text"
-                  placeholder="Description"
-                  className="w-[90%] text-sm focus-visible:ring-0 border-none bg-gray-100"
-                />
+              <div className="flex justify-between w-[90%] gap-3 m-auto">
+                <div className="w-[60%]">
+                  <Input
+                    type="text"
+                    placeholder="Description"
+                    className="text-sm focus-visible:ring-0"
+                  />
+                </div>
+                <div className="w-[40%]">
+                  <Select>
+                    <SelectTrigger className="w-full focus-visible:ring-0 active:ring-0 focus:ring-0">
+                      <SelectValue placeholder="Paid By" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="jaydeep">
+                          {/* picture and text */}
+
+                          <div className="flex items-center gap-3">
+                            <img src="/man.png" alt="man" className="h-6 w-6" />
+                            <p>Fidal</p>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="fidal">
+                          {/* picture and text */}
+
+                          <div className="flex items-center gap-3">
+                            <img src="/man.png" alt="man" className="h-6 w-6" />
+                            <p>Jaydeep</p>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="manvik">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src="/user.png"
+                              alt="user"
+                              className="h-6 w-6"
+                            />
+                            <p>Manvik</p>
+                          </div>
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="flex items-center mt-5 w-[90%] m-auto gap-3">
@@ -175,7 +198,7 @@ export default function Groups() {
                           !date && "text-muted-foreground"
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <CalendarIcon className="mr-2 h-4 w-4" mode="single" />
                         {date ? format(date, "PPP") : <span>Pick a date</span>}
                       </Button>
                     </PopoverTrigger>
@@ -347,17 +370,64 @@ export default function Groups() {
           </ResponsiveDialogComponentHeader>
         </ResponsiveDialogComponentContent>
       </ResponsiveDialogComponent>
-      <Dialog open={addMemberBox} onOpenChange={setAddMemberBox}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <ResponsiveDialogComponent
+        open={addMemberBox}
+        onOpenChange={setAddMemberBox}
+      >
+        <ResponsiveDialogComponentContent>
+          <ResponsiveDialogComponentHeader>
+            <ResponsiveDialogComponentTitle>
+              Add Group Member
+            </ResponsiveDialogComponentTitle>
+            <ResponsiveDialogComponentDescription>
+              <div className="w-full py-6 flex items-center flex-col lg:flex-row gap-4">
+                <div>
+                  <Input type="file" id="avatarupload" className="hidden" />
+
+                  <Avatar className="w-32 h-32 relative overflow-visible">
+                    <Label htmlFor="avatarupload" className="cursor-pointer">
+                      <div className="absolute bottom-1 z-10 right-3 border h-6 w-6 bg-white rounded-full grid place-content-center cursor-pointer">
+                        <Plus className="h-4 w-4" />
+                      </div>
+                    </Label>
+                    <AvatarImage src="/user.png" />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex flex-col w-full gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Name"
+                    className="w-full focus-visible:ring-0"
+                  />
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="text"
+                      placeholder="Email"
+                      className="w-full focus-visible:ring-0"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="Phone"
+                      className="w-full focus-visible:ring-0"
+                    />
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Wallet Address (0x..)"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              <ResponsiveDialogComponentFooter className="p-0 pb-4 lg:pb-0">
+                <Button className="bg-[#81B29A] hover:bg-[#81B29A] w-full">
+                  Add Member
+                </Button>
+              </ResponsiveDialogComponentFooter>
+            </ResponsiveDialogComponentDescription>
+          </ResponsiveDialogComponentHeader>
+        </ResponsiveDialogComponentContent>
+      </ResponsiveDialogComponent>
 
       <div className="h-[200px] w-full">
         <img
@@ -396,9 +466,9 @@ export default function Groups() {
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
           </div>
-          <div className="w-12 h-12 rounded-full border-2 grid place-content-center">
+          {/* <div className="w-12 h-12 rounded-full border-2 grid place-content-center">
             <UserRoundPlus className="text-[#3D405B]" />
-          </div>
+          </div> */}
 
           <Button
             variant={"outline"}
@@ -460,7 +530,9 @@ export default function Groups() {
                       <p className="text-sm lg:text-lg font-semibold">
                         Resort Booking
                       </p>
-                      <p className="text-xs">Paid by Manvik</p>
+                      <p className="text-xs">
+                        Paid by {index === 1 ? "You" : "Manvik"}
+                      </p>
                       {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
                     </div>
                   </div>
@@ -480,7 +552,13 @@ export default function Groups() {
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="text-slate-800 font-bold">300 USDC</div>
+                <div
+                  className={` font-bold ${
+                    index !== 1 ? "text-red-600" : "text-green-600"
+                  }`}
+                >
+                  300 USDC
+                </div>
               </div>
 
               <div
@@ -493,7 +571,10 @@ export default function Groups() {
         </div>
         <div className="h-[500px] overflow-y-auto border my-8 rounded-lg lg:w-[30%] w-full bg-white flex flex-col expense-box gap-10 relative">
           <div className="p-4 border-b font-semibold text-xl sticky top-0 bg-white z-[20] flex justify-between items-center">
-            <p className="text-sm">Group Members</p>
+            <div>
+              <p className="text-sm">Group Members</p>
+              <p className="text-xs font-normal">4 Members</p>
+            </div>
             <div>
               <TooltipProvider>
                 <Tooltip>
@@ -514,18 +595,25 @@ export default function Groups() {
             </div>
           </div>
           {Array.from({length: 4}).map((_, index) => (
-            <div className="flex gap-3 items-center ml-3 -translate-y-4 px-3">
-              <Avatar className="h-14 w-14">
-                <AvatarImage src="/man.png" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <p className="text-lg font-semibold">Jaydeep</p>
-                <p className="text-xs text-green-700 font-semibold">
-                  Gets Back 20 USDC
-                </p>
-                {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
+            <div className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-14 w-14">
+                  <AvatarImage src="/man.png" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <p className="text-lg font-semibold">Jaydeep</p>
+                  <p className="text-xs text-green-700 font-semibold">
+                    Fidal and Manvik owe 20 USDC
+                  </p>
+                  {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
+                </div>
               </div>
+              {index === 0 && (
+                <div>
+                  <Badge className="bg-[#81B29A]">Admin</Badge>
+                </div>
+              )}
             </div>
           ))}
         </div>
