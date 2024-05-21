@@ -426,6 +426,10 @@ export default function Groups() {
                                       }
                                       name={`splitArray[${index}].isChecked`}
                                       onCheckedChange={(checked: boolean) => {
+                                        // if amount is 0, then return
+                                        if (amount === 0) {
+                                          return;
+                                        }
                                         setSplitArray((prev) => {
                                           const newArray = [...prev];
                                           newArray[index].isChecked = checked;
@@ -522,6 +526,10 @@ export default function Groups() {
                                       unequallySplitArray[index].isChecked
                                     }
                                     onCheckedChange={(checked: boolean) => {
+                                      // if amount is 0, then return
+                                      if (amount === 0) {
+                                        return;
+                                      }
                                       setUnequallySplitArray((prev) => {
                                         const newArray = [...prev];
                                         newArray[index].isChecked = checked;
