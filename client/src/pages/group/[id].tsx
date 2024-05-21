@@ -59,7 +59,7 @@ export default function Groups() {
   const [addMemberBox, setAddMemberBox] = useState(false);
   const [date, setDate] = useState<Date>();
   const [openAIBox, setOpenAIBox] = useState(false);
-  const [amount, setAmount] = useState(1200);
+  const [amount, setAmount] = useState(0);
   const [splitArray, setSplitArray] = useState([] as SplitArray[]);
   const [numberOfChecked, setNumberOfChecked] = useState(0);
   const [numberOfUnequallyChecked, setNumberOfUnequallyChecked] = useState(0);
@@ -67,6 +67,7 @@ export default function Groups() {
     [] as SplitArray[]
   );
   const [amountRemaining, setAmountRemaining] = useState(amount);
+  const [equalSplit, setEqualSplit] = useState(true);
 
   const MembersArray = [{name: "Manvik"}, {name: "Jaydeep"}, {name: "Fidal"}];
   useEffect(() => {
@@ -79,21 +80,66 @@ export default function Groups() {
         };
       }
     );
+    const newArrayUnequallySplit = Array.from({
+      length: MembersArray.length,
+    }).map((_, index) => {
+      return {
+        name: MembersArray[index].name,
+        amount: 0,
+        isChecked: false,
+      };
+    });
 
     setUnequallySplitArray(newArray);
 
-    setSplitArray(newArray);
+    setSplitArray(newArrayUnequallySplit);
   }, []);
 
   useEffect(() => {
     const checked = splitArray.filter((item) => item.isChecked);
     setNumberOfChecked(checked.length);
+  }, [splitArray]);
 
+  useEffect(() => {
     const unequallySplitArrayChecked = unequallySplitArray.filter(
       (item) => item.isChecked
     );
     setNumberOfUnequallyChecked(unequallySplitArrayChecked.length);
-  }, [splitArray]);
+  }, [unequallySplitArray]);
+
+  useEffect(() => {
+    //  if equal split is false, then reset the splitArray to default values
+    if (!equalSplit) {
+      setSplitArray((prev) => {
+        const newArray = [...prev];
+        newArray.forEach((item, index) => {
+          newArray[index].isChecked = false;
+          newArray[index].amount = 0;
+        });
+        return newArray;
+      });
+
+      setNumberOfChecked(0);
+    } else {
+      setUnequallySplitArray((prev) => {
+        const newArray = [...prev];
+        newArray.forEach((item, index) => {
+          newArray[index].isChecked = false;
+          newArray[index].amount = 0;
+        });
+        return newArray;
+      });
+
+      setNumberOfUnequallyChecked(0);
+      setAmountRemaining(amount);
+    }
+  }, [equalSplit]);
+
+  console.log(amount, "amountRemaining");
+  console.log(numberOfChecked, "numberOfChecked");
+  console.log(numberOfUnequallyChecked, "numberOfUnequallyChecked");
+  console.log(unequallySplitArray, "unequallySplitArray");
+  console.log(splitArray, "splitArray");
 
   return (
     <div className="h-screen w-full">
@@ -127,11 +173,28 @@ export default function Groups() {
                 {(formik) => (
                   <Form className="flex flex-col">
                     <div className="flex items-end justify-center text-6xl gap-1 w-full mb-6">
-                      <Field
-                        as={Input}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setAmount(Number(e.target.value))
-                        }
+                      <Input
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setAmount(Number(e.target.value));
+                          formik.setFieldValue(
+                            "amount",
+                            Number(e.target.value)
+                          );
+
+                          // if amount becomes 0, then reset the splitArray to default values
+                          if (Number(e.target.value) === 0) {
+                            setSplitArray((prev) => {
+                              const newArray = [...prev];
+                              newArray.forEach((item, index) => {
+                                newArray[index].isChecked = false;
+                                newArray[index].amount = 0;
+                              });
+                              return newArray;
+                            });
+
+                            setNumberOfChecked(0);
+                          }
+                        }}
                         type="text"
                         placeholder="0"
                         className="focus-visible:ring-0 border-none rounded-none text-6xl h-24 text-center w-[180px]"
@@ -321,6 +384,7 @@ export default function Groups() {
                           <TabsTrigger
                             onClick={() => {
                               formik.setFieldValue("equalSplit", true);
+                              setEqualSplit(true);
                             }}
                             value="equally"
                             className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
@@ -330,6 +394,7 @@ export default function Groups() {
                           <TabsTrigger
                             onClick={() => {
                               formik.setFieldValue("equalSplit", false);
+                              setEqualSplit(false);
                             }}
                             value="unequally"
                             className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
@@ -359,6 +424,7 @@ export default function Groups() {
                                         splitArray[index] &&
                                         splitArray[index].isChecked
                                       }
+                                      name={`splitArray[${index}].isChecked`}
                                       onCheckedChange={(checked: boolean) => {
                                         setSplitArray((prev) => {
                                           const newArray = [...prev];
@@ -448,6 +514,7 @@ export default function Groups() {
                               <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50">
                                 <div className="flex gap-3 items-center">
                                   <Checkbox
+                                    id={`unequallySplitArray${index}`}
                                     name={`unequallySplitArray[${index}].isChecked`}
                                     className="data-[state=checked]:bg-[#81B29A] focus-visible:ring-0 border border-gray-300 bg-gray-200"
                                     checked={
@@ -472,6 +539,7 @@ export default function Groups() {
                                           "unequallySplitArray",
                                           newArray
                                         );
+
                                         return newArray;
                                       });
 
@@ -553,7 +621,7 @@ export default function Groups() {
                         disabled={
                           formik.values.equalSplit
                             ? numberOfChecked === 0
-                            : amountRemaining === 0
+                            : amountRemaining !== 0
                         }
                       >
                         Submit Expense
