@@ -45,6 +45,7 @@ import {
 import {Badge} from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
 import {Field, Form, Formik} from "formik";
+import {emoji} from "@/lib/emoji";
 
 interface SplitArray {
   name: string;
@@ -59,6 +60,8 @@ export default function Groups() {
   const [addMemberBox, setAddMemberBox] = useState(false);
   const [date, setDate] = useState<Date>();
   const [openAIBox, setOpenAIBox] = useState(false);
+  const [openAvatarModal, setOpenAvatarModal] = useState(false);
+
   const [amount, setAmount] = useState(0);
   const [splitArray, setSplitArray] = useState([] as SplitArray[]);
   const [numberOfChecked, setNumberOfChecked] = useState(0);
@@ -385,6 +388,16 @@ export default function Groups() {
                             onClick={() => {
                               formik.setFieldValue("equalSplit", true);
                               setEqualSplit(true);
+
+                              // reset the unequallySplitArray to default values
+                              setUnequallySplitArray((prev) => {
+                                const newArray = [...prev];
+                                newArray.forEach((item, index) => {
+                                  newArray[index].isChecked = false;
+                                  newArray[index].amount = 0;
+                                });
+                                return newArray;
+                              });
                             }}
                             value="equally"
                             className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
@@ -395,6 +408,16 @@ export default function Groups() {
                             onClick={() => {
                               formik.setFieldValue("equalSplit", false);
                               setEqualSplit(false);
+
+                              // reset the splitArray to default values
+                              setSplitArray((prev) => {
+                                const newArray = [...prev];
+                                newArray.forEach((item, index) => {
+                                  newArray[index].isChecked = false;
+                                  newArray[index].amount = 0;
+                                });
+                                return newArray;
+                              });
                             }}
                             value="unequally"
                             className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
@@ -652,50 +675,113 @@ export default function Groups() {
               Add Group Member
             </ResponsiveDialogComponentTitle>
             <ResponsiveDialogComponentDescription>
-              <div className="w-full py-6 flex items-center flex-col lg:flex-row gap-4">
-                <div>
-                  <Input type="file" id="avatarupload" className="hidden" />
+              <Formik
+                initialValues={{
+                  name: "",
+                  email: "",
+                  phone: "",
+                  wallet: "",
+                  avatarPath: "/user.png",
+                }}
+                onSubmit={(values, action) => {
+                  console.log(values);
+                }}
+              >
+                {(formik) => (
+                  <Form>
+                    <div className="w-full pt-6 flex items-center flex-col lg:flex-row gap-4">
+                      <div>
+                        <ResponsiveDialogComponent
+                          open={openAvatarModal}
+                          onOpenChange={setOpenAvatarModal}
+                        >
+                          <ResponsiveDialogComponentContent>
+                            <ResponsiveDialogComponentHeader>
+                              <ResponsiveDialogComponentTitle>
+                                <p>Select an Emoji</p>
+                              </ResponsiveDialogComponentTitle>
+                              <ResponsiveDialogComponentDescription>
+                                <div className="grid grid-cols-3 grid-flow-row grid-rows-3 w-full place-items-center pt-5 gap-6">
+                                  {emoji.map((item, index) => (
+                                    <div
+                                      key={index}
+                                      className="border rounded-xl p-4 flex flex-col gap-2 aspect-square h-fit items-center cursor-pointer hover:bg-muted"
+                                    >
+                                      <img
+                                        src={item.imgpath}
+                                        alt={item.name}
+                                        className="h-16 w-16"
+                                        onClick={() => {
+                                          formik.setFieldValue(
+                                            "avatarPath",
+                                            item.imgpath
+                                          );
+                                          setOpenAvatarModal(false);
+                                        }}
+                                      />
+                                      {/* <p>Man</p> */}
+                                    </div>
+                                  ))}
+                                </div>
+                              </ResponsiveDialogComponentDescription>
+                            </ResponsiveDialogComponentHeader>
+                          </ResponsiveDialogComponentContent>
+                        </ResponsiveDialogComponent>
 
-                  <Avatar className="w-32 h-32 relative overflow-visible">
-                    <Label htmlFor="avatarupload" className="cursor-pointer">
-                      <div className="absolute bottom-1 z-10 right-3 border h-6 w-6 bg-white rounded-full grid place-content-center cursor-pointer">
-                        <Plus className="h-4 w-4" />
+                        <Avatar
+                          className="w-32 h-32 relative overflow-visible cursor-pointer"
+                          onClick={() => setOpenAvatarModal((prev) => !prev)}
+                        >
+                          <AvatarImage src={formik.values.avatarPath} />
+                          <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
                       </div>
-                    </Label>
-                    <AvatarImage src="/user.png" />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                </div>
-                <div className="flex flex-col w-full gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Name"
-                    className="w-full focus-visible:ring-0"
-                  />
-                  <div className="flex items-center gap-3">
-                    <Input
-                      type="text"
-                      placeholder="Email"
-                      className="w-full focus-visible:ring-0"
-                    />
-                    <Input
-                      type="text"
-                      placeholder="Phone"
-                      className="w-full focus-visible:ring-0"
-                    />
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="Wallet Address (0x..)"
-                    className="w-full"
-                  />
-                </div>
-              </div>
-              <ResponsiveDialogComponentFooter className="p-0 pb-4 lg:pb-0">
-                <Button className="bg-[#81B29A] hover:bg-[#81B29A] w-full">
-                  Add Member
-                </Button>
-              </ResponsiveDialogComponentFooter>
+                      <div className="flex flex-col w-full gap-2">
+                        <Field
+                          as={Input}
+                          name="name"
+                          id="name"
+                          type="text"
+                          placeholder="Name"
+                          className="w-full focus-visible:ring-0"
+                        />
+                        <div className="flex items-center gap-3">
+                          <Field
+                            as={Input}
+                            name="email"
+                            id="email"
+                            type="text"
+                            placeholder="Email"
+                            className="w-full focus-visible:ring-0"
+                          />
+                          <Field
+                            as={Input}
+                            name="phone"
+                            id="phone"
+                            type="text"
+                            placeholder="Phone"
+                            className="w-full focus-visible:ring-0"
+                          />
+                        </div>
+                        <Field
+                          as={Input}
+                          name="wallet"
+                          id="wallet"
+                          type="text"
+                          placeholder="Wallet Address (0x..)"
+                          className="w-full focus-visible:ring-0"
+                        />
+                      </div>
+                      <Button
+                        className="bg-[#81B29A] hover:bg-[#81B29A] w-full"
+                        type="submit"
+                      >
+                        Add Member
+                      </Button>
+                    </div>
+                  </Form>
+                )}
+              </Formik>
             </ResponsiveDialogComponentDescription>
           </ResponsiveDialogComponentHeader>
         </ResponsiveDialogComponentContent>

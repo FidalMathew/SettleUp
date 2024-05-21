@@ -157,7 +157,7 @@ export default function Dashboard() {
                     from: new Date(),
                     to: new Date(),
                   },
-                  category: "",
+                  category: "food",
                 }}
                 onSubmit={(values, _) => console.log(values)}
               >
