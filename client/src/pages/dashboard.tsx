@@ -63,7 +63,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import {usePrivy} from "@privy-io/react-auth";
+import {usePrivy, useWallets} from "@privy-io/react-auth";
 
 import {
   DropdownMenu,
@@ -75,6 +75,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import {Formik, Form, Field} from "formik";
+import {useContractFunctionContextHook} from "@/Context/ContractContext";
 
 const data = [
   {
@@ -131,12 +132,15 @@ const data = [
 export default function Dashboard() {
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
   const router = useRouter();
-  const {ready, user, logout} = usePrivy();
+  // const {ready, user, logout} = usePrivy();
+  const {ready, wallets} = useWallets();
   useEffect(() => {
-    if (ready && !user) {
+    if (ready && !wallets[0]) {
       router.push("/");
     }
-  }, [user]);
+  }, [wallets]);
+
+  const {createGroup} = useContractFunctionContextHook();
 
   return (
     <div className="h-fit w-full relative px-4 pt-8 md:px-14 flex flex-col gap-7 dashboard">
@@ -436,22 +440,30 @@ export default function Dashboard() {
             </Tooltip>
           </TooltipProvider>
           <div>
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger>
-                <Button variant={"outline"}>
-                  <Wallet className="mr-2 h-4 w-4" />{" "}
-                  {user &&
-                    user.wallet?.address.slice(0, 6) +
-                      "..." +
-                      user.wallet?.address.slice(-4)}
-                </Button>
+                
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={logout} className="text-red-400">
+                <DropdownMenuItem
+                  onClick={() => wallets[0].disconnect()}
+                  className="text-red-400"
+                >
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
+
+            <Button variant={"outline"}>
+              <Wallet className="mr-2 h-4 w-4" />{" "}
+              {wallets[0] &&
+                wallets[0]?.address.slice(0, 6) +
+                  "..." +
+                  wallets[0]?.address.slice(-4)}
+            </Button>
+          </div>
+          <div>
+            <Button onClick={createGroup}>Create Group</Button>
           </div>
         </div>
       </div>
