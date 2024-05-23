@@ -15,13 +15,13 @@ import { getContract } from 'viem'
 
 
 interface ContractFunctionContextProps {
-  createGroup?: () => void;
+  createGroup?: (args: any) => void;
   getContractInstance?: () => void;
   performBatchTransaction?: () => void;
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
-  createGroup: () => { },
+  createGroup: (args: any) => { },
   getContractInstance: () => { },
   performBatchTransaction: () => { },
 });
@@ -44,7 +44,7 @@ export default function ContractFunctionContextProvider({
     }
   }, [wallets]);
 
-  const createGroup = async () => {
+  const createGroup = async (args: any) => {
     try {
       const walletClient = createWalletClient({
         account: wallets[0].address as `0x${string}`,
@@ -61,7 +61,7 @@ export default function ContractFunctionContextProvider({
         address: CONTRACT_ADDRESS,
         abi: settleUpABI,
         functionName: "createGroup",
-        args: ["VIT"],
+        args: args,
       });
       await walletClient.writeContract(request);
     } catch (err) {

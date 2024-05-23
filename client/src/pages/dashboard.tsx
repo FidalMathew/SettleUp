@@ -140,7 +140,15 @@ export default function Dashboard() {
     }
   }, [wallets]);
 
-  const { performBatchTransaction, getContractInstance } = useContractFunctionContextHook();
+  const { performBatchTransaction, getContractInstance, createGroup } = useContractFunctionContextHook();
+
+  const handleCreateGroup = async (values: any) => {
+    const { groupName, dateRange, category } = values;
+    if (createGroup) {
+      createGroup([groupName]);
+    }
+  }
+
 
   return (
     <div className="h-fit w-full relative px-4 pt-8 md:px-14 flex flex-col gap-7 dashboard">
@@ -163,7 +171,7 @@ export default function Dashboard() {
                   },
                   category: "food",
                 }}
-                onSubmit={(values, _) => console.log(values)}
+                onSubmit={(values, _) => handleCreateGroup(values)}
               >
                 {(formik) => (
                   <Form className="flex flex-col justify-start gap-6">
