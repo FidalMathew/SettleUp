@@ -1,17 +1,25 @@
 import {Button} from "@/components/ui/button";
-import {usePrivy} from "@privy-io/react-auth";
+import {usePrivy, useWallets} from "@privy-io/react-auth";
 import {ArrowRight, Wallet} from "lucide-react";
 import {useRouter} from "next/router";
 
 export default function Home() {
   const router = useRouter();
 
-  const {login, user, logout} = usePrivy();
+  const {connectWallet} = usePrivy();
+  const {wallets, ready} = useWallets();
+
+  const requiredWallet = wallets.find(
+    (wallet) => wallet.meta.name === "MetaMask"
+  );
+
+  console.log(wallets, "reqdwallets");
+
   return (
     <div className="h-screen w-full">
       <div className="h-[80px] w-full flex items-center justify-between lg:gap-5 lg:pr-32 lg:pl-32 px-6">
         <img src="/logo.png" alt="logo" className="h-[60px]" />
-        {user ? (
+        {requiredWallet && ready ? (
           <div>
             <Button
               className="rounded-full border border-gray-400"
@@ -26,7 +34,7 @@ export default function Home() {
             <Button
               className="rounded-full border border-gray-400"
               variant={"outline"}
-              onClick={login}
+              onClick={connectWallet}
             >
               <Wallet className="mr-2 h-4 w-4" /> Connect Wallet
             </Button>
@@ -42,7 +50,7 @@ export default function Home() {
             Experience the ease of managing group expenses <br /> with our smart
             and efficient solution.
           </p>
-          {user ? (
+          {requiredWallet && ready ? (
             <Button
               className="w-[200px] rounded-xl bg-[#F2CC8F] hover:bg-[#F2CC8F] text-slate-600"
               onClick={() => router.push("/dashboard")}
@@ -56,11 +64,7 @@ export default function Home() {
           )}
         </div>
         <div className="w-full">
-          <img
-            src="/file.png"
-            alt="photo3"
-            className="lg:h-[700px] lg:w-full w-[470px] h-[470px] "
-          />
+          <img src="/file.png" alt="photo3" className="w-full h-full " />
         </div>
       </div>
     </div>
