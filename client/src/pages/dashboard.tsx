@@ -140,13 +140,14 @@ export default function Dashboard() {
     }
   }, [wallets]);
 
-  const { performBatchTransaction, getContractInstance, createGroup } = useContractFunctionContextHook();
+  const { performBatchTransaction, getContractInstance, createGroup, gaslessTransaction } = useContractFunctionContextHook();
 
   const handleCreateGroup = async (values: any) => {
     const { groupName, dateRange, category } = values;
-    if (createGroup) {
-      createGroup([groupName]);
-    }
+    // if (createGroup) {
+    //   createGroup([groupName]);
+    // }
+    gaslessTransaction();
   }
 
 
