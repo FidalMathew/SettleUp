@@ -1,4 +1,4 @@
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
@@ -21,9 +21,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import {Progress} from "@/components/ui/progress";
-import {Separator} from "@radix-ui/react-separator";
-import {Button} from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@radix-ui/react-separator";
+import { Button } from "@/components/ui/button";
 import {
   BarChart,
   Bar,
@@ -50,12 +50,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import {useEffect, useState} from "react";
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
-import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
-import {useRouter} from "next/router";
-import {DatePickerWithRange} from "@/components/ui/DateRangePicker";
+import { useEffect, useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useRouter } from "next/router";
+import { DatePickerWithRange } from "@/components/ui/DateRangePicker";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
@@ -63,7 +63,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import {usePrivy, useWallets} from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 
 import {
   DropdownMenu,
@@ -74,8 +74,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import {Formik, Form, Field} from "formik";
-import {useContractFunctionContextHook} from "@/Context/ContractContext";
+import { Formik, Form, Field } from "formik";
+import { useContractFunctionContextHook } from "@/Context/ContractContext";
 
 const data = [
   {
@@ -133,14 +133,14 @@ export default function Dashboard() {
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
   const router = useRouter();
   // const {ready, user, logout} = usePrivy();
-  const {ready, wallets} = useWallets();
+  const { ready, wallets } = useWallets();
   useEffect(() => {
     if (ready && !wallets[0]) {
       router.push("/");
     }
   }, [wallets]);
 
-  const {createGroup} = useContractFunctionContextHook();
+  const { performBatchTransaction, getContractInstance } = useContractFunctionContextHook();
 
   return (
     <div className="h-fit w-full relative px-4 pt-8 md:px-14 flex flex-col gap-7 dashboard">
@@ -193,7 +193,7 @@ export default function Dashboard() {
                       <DatePickerWithRange formik={formik} className="" />
                     </div>
                     <div className="w-full">
-                      <Carousel opts={{align: "start"}} className="w-full">
+                      <Carousel opts={{ align: "start" }} className="w-full">
                         <RadioGroup
                           defaultValue="food"
                           className="w-full"
@@ -458,12 +458,13 @@ export default function Dashboard() {
               <Wallet className="mr-2 h-4 w-4" />{" "}
               {wallets[0] &&
                 wallets[0]?.address.slice(0, 6) +
-                  "..." +
-                  wallets[0]?.address.slice(-4)}
+                "..." +
+                wallets[0]?.address.slice(-4)}
             </Button>
           </div>
           <div>
-            <Button onClick={createGroup}>Create Group</Button>
+            {/* <Button onClick={performBatchTransaction}>Create Group</Button> */}
+            {/* <Button onClick={getContractInstance}>Contract Instance</Button> */}
           </div>
         </div>
       </div>
@@ -560,7 +561,7 @@ export default function Dashboard() {
           className="w-full p-6"
         >
           <CarouselContent className="">
-            {Array.from({length: 5}).map((_, index) => (
+            {Array.from({ length: 5 }).map((_, index) => (
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                 <div className="p-1">
                   <Card className="h-fit">
@@ -651,7 +652,7 @@ export default function Dashboard() {
 
         <div className="flex justify-center items-center gap-5 flex-col lg:flex-row">
           <div className="h-[500px] overflow-y-auto border my-8 rounded-lg lg:w-[80%] w-full bg-white flex flex-col expense-box gap-5">
-            {Array.from({length: 8}).map((_, index) => (
+            {Array.from({ length: 8 }).map((_, index) => (
               <div className="pt-5 px-8 bg-white">
                 <div className="flex items-center gap-3 justify-between">
                   <div className="flex items-center gap-3">
