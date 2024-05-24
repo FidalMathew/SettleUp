@@ -13,7 +13,7 @@ interface AddMembersProps {
 const AddMembers = ({name, email, phone, walletAddress}: AddMembersProps) => {
   return (
     <div>
-      <p className="text-lg font-semibold">Create Group</p>
+      <p className="text-lg font-semibold text-center">Add Members</p>
       <div className="w-full pt-6 flex items-center flex-col gap-4">
         <div>
           <Input type="file" id="avatarupload" className="hidden" />

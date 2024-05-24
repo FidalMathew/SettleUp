@@ -1,5 +1,5 @@
-import { EIP1193Provider, useWallets } from "@privy-io/react-auth";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import {EIP1193Provider, useWallets} from "@privy-io/react-auth";
+import {createContext, ReactNode, useContext, useEffect, useState} from "react";
 import {
   createPublicClient,
   createWalletClient,
@@ -8,6 +8,7 @@ import {
   http,
   WalletClient,
 } from "viem";
+<<<<<<< Updated upstream
 import { moonbaseAlpha } from "viem/chains";
 import { settleUpABI } from "@/lib/abi/settleUpAbi";
 import { batchABI } from "@/lib/abi/batchABI";
@@ -17,6 +18,12 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { ethers } from 'ethers'
 
 
+=======
+import {moonbaseAlpha} from "viem/chains";
+import {settleUpABI} from "@/lib/abi/settleUpAbi";
+import {batchABI} from "@/lib/abi/batchABI";
+import {getContract} from "viem";
+>>>>>>> Stashed changes
 
 interface ContractFunctionContextProps {
   getContractInstance?: () => void;
@@ -26,10 +33,16 @@ interface ContractFunctionContextProps {
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
+<<<<<<< Updated upstream
   getContractInstance: () => { },
   performBatchTransaction: () => { },
   gaslessTransaction: (functionName: string, args: any) => { },
   groups: []
+=======
+  createGroup: (args: any) => {},
+  getContractInstance: () => {},
+  performBatchTransaction: () => {},
+>>>>>>> Stashed changes
 });
 
 
@@ -55,31 +68,35 @@ export default function ContractFunctionContextProvider({
 
 
 
-  const getContractInstance = async (CONTRACT_ADDRESS: `0x${string}`, settleUpABI: any) => {
+  const getContractInstance = async (
+    CONTRACT_ADDRESS: `0x${string}`,
+    settleUpABI: any
+  ) => {
+    if (wallets[0] && provider) {
+      const walletClient = createWalletClient({
+        account: wallets[0].address as `0x${string}`,
+        chain: moonbaseAlpha,
+        transport: custom(provider!),
+      });
 
-    const walletClient = createWalletClient({
-      account: wallets[0].address as `0x${string}`,
-      chain: moonbaseAlpha,
-      transport: custom(provider!),
-    });
+      const publicClient = createPublicClient({
+        chain: moonbaseAlpha,
+        transport: custom(provider!),
+      });
 
-    const publicClient = createPublicClient({
-      chain: moonbaseAlpha,
-      transport: custom(provider!),
-    });
+      const contract = getContract({
+        address: CONTRACT_ADDRESS,
+        abi: settleUpABI,
+        // 1a. Insert a single client
+        // client: publicClient,
+        // 1b. Or public and/or wallet clients
+        client: {public: publicClient, wallet: walletClient},
+      });
 
-    const contract = getContract({
-      address: CONTRACT_ADDRESS,
-      abi: settleUpABI,
-      // 1a. Insert a single client
-      // client: publicClient,
-      // 1b. Or public and/or wallet clients
-      client: { public: publicClient, wallet: walletClient }
-    })
-
-    console.log(contract, "contract instance")
-    return contract;
-  }
+      console.log(contract, "contract instance");
+      return contract;
+    }
+  };
 
 
   const performBatchTransaction = async () => {
@@ -95,9 +112,9 @@ export default function ContractFunctionContextProvider({
     console.log(createGroupCalldata, "createGroupCalldata")
 
     const batchContract = await getContractInstance(batchAddress, batchABI);
-    console.log(batchContract, "batchContract")
-    const batchAll = await batchContract.write.batchAll(
-      [[CONTRACT_ADDRESS],
+    console.log(batchContract, "batchContract");
+    const batchAll = await batchContract?.write.batchAll([
+      [CONTRACT_ADDRESS],
       [],
       [createGroupCalldata],
       []],
@@ -248,7 +265,7 @@ export default function ContractFunctionContextProvider({
 
   const viewAllGroups = async () => {
     const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-    const groups: any = await contract.read.getGroupsForMember([wallets[0].address as `0x${string}`]);
+    const groups: any = await contract?.read.getGroupsForMember([wallets[0].address as `0x${string}`]);
     console.log(groups, "groups")
 
     const groupNumbers = groups[0] as any;
@@ -274,20 +291,20 @@ export default function ContractFunctionContextProvider({
 
   const getGroupMembers = async (groupId: number) => {
     const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-    const groupMembers = await contract.read.getGroupMembers([groupId])
+    const groupMembers = await contract?.read.getGroupMembers([groupId])
     console.log(groupMembers, "groupMembers")
 
   }
 
   const viewAllExpensesOfGroup = async (groupId: number) => {
     const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-    const expenses = await contract.read.getExpensesOfGroup([groupId])
+    const expenses = await contract?.read.getExpensesOfGroup([groupId])
     console.log(expenses, "expenses")
   }
 
   const getAllDebts = async (groupId: number) => {
     const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-    const debts = await contract.read.getAllDebts([groupId])
+    const debts = await contract?.read.getAllDebts([groupId])
     console.log(debts, "debts")
   }
 

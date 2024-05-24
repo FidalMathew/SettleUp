@@ -30,9 +30,14 @@ export const DatePickerWithRange: FC<DatePickerWithRangeProps> = ({
 }) => {
   const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(),
-    to: addDays(new Date(), 20),
+    to: new Date(),
   });
 
+  useEffect(() => {
+    if (formik) {
+      formik.setFieldValue("dateRange", date);
+    }
+  }, [date]);
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -65,9 +70,9 @@ export const DatePickerWithRange: FC<DatePickerWithRangeProps> = ({
             initialFocus
             mode="range"
             defaultMonth={date?.from}
-            selected={formik?.values.dateRange}
+            selected={date}
             onSelect={(range) => {
-              formik?.setFieldValue("dateRange", range);
+              setDate(range);
             }}
             numberOfMonths={2}
           />

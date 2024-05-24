@@ -772,13 +772,13 @@ export default function Groups() {
                           className="w-full focus-visible:ring-0"
                         />
                       </div>
-                      <Button
-                        className="bg-[#81B29A] hover:bg-[#81B29A] w-full"
-                        type="submit"
-                      >
-                        Add Member
-                      </Button>
                     </div>
+                    <Button
+                      className="bg-[#81B29A] hover:bg-[#81B29A] w-full mt-4"
+                      type="submit"
+                    >
+                      Add Member
+                    </Button>
                   </Form>
                 )}
               </Formik>

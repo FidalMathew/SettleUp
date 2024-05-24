@@ -1,14 +1,56 @@
-import {Search, Option, Detail} from "searchpal";
+import {Search, Option, Detail, Searcher} from "searchpal";
 import {Button} from "../ui/button";
 import AddMembers from "./AddMember";
 import CreateGroup from "./CreateGroup";
 import AddExpense from "./AddExpense";
-
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 interface SearchBoxProps {
   openAIBox: boolean;
   setOpenAIBox: (value: boolean) => void;
 }
 export default function SearchBox({openAIBox, setOpenAIBox}: SearchBoxProps) {
+  const searcher: Searcher = async (query: string) => {
+    const functionInterpretation = "create a group";
+
+    console.log(query, "query");
+
+    return (
+      <Option
+        label={query}
+        key={query}
+        media={
+          <img
+            src={
+              query === "create a group"
+                ? "/add.png"
+                : query === "add members"
+                ? "/team.png"
+                : query === "add expense"
+                ? "/money.png"
+                : "/user.png"
+            }
+            alt=""
+          />
+        }
+        sublabel={
+          <div>
+            <div>Creates a new group with the given name.</div>
+          </div>
+        }
+        preview={
+          query === "create a group" ? (
+            <CreateGroup />
+          ) : query === "add members" ? (
+            <AddMembers />
+          ) : query === "add expense" ? (
+            <AddExpense />
+          ) : (
+            <div>Not found</div>
+          )
+        }
+      />
+    );
+  };
   return (
     <Search
       label="Query a Command Using AI"
@@ -35,80 +77,10 @@ export default function SearchBox({openAIBox, setOpenAIBox}: SearchBoxProps) {
       animate="fade"
       dark={false}
     >
-      <Option
-        label="Add Members to a Group"
-        sublabel={
-          <div>
-            <div>Creates a new group with the given name.</div>
-          </div>
-        }
-        cta={"Add Members to a Group"}
-        img={{
-          src: "/add.png",
-          alt: "Create a Group",
-        }}
-        button={({cta, onClick}) => {
-          return (
-            <Button className="w-full bg-[#81B29A]" onClick={onClick}>
-              {cta}
-            </Button>
-          );
-        }}
-        preview={
-          <AddMembers
-            name="Team 1"
-            email="jaydeep"
-            phone="1234567890"
-            walletAddress="0x1234567890"
-          />
-        }
-      />
-
-      <Option
-        label="Create a Group"
-        sublabel={
-          <div>
-            <div>Creates a new group with the given name.</div>
-          </div>
-        }
-        img={{
-          src: "/team.png",
-          alt: "Create a Group",
-        }}
-        cta={"Create a Group"}
-        button={({cta, onClick}) => {
-          return (
-            <Button className="w-full bg-[#81B29A]" onClick={onClick}>
-              {cta}
-            </Button>
-          );
-        }}
-        preview={<CreateGroup />}
-      />
-      <Option
-        label="Add Expense"
-        sublabel={
-          <div>
-            <div>
-              Adds an expense to the group with the given amount and
-              description.
-            </div>
-          </div>
-        }
-        img={{
-          src: "/money.png",
-          alt: "Money",
-        }}
-        cta={"Add Expense"}
-        button={({cta, onClick}) => {
-          return (
-            <Button className="w-full bg-[#81B29A]" onClick={onClick}>
-              {cta}
-            </Button>
-          );
-        }}
-        preview={<AddExpense />}
-      />
+      {async (q) => {
+        const results = await searcher(q);
+        return results;
+      }}
     </Search>
   );
 }
