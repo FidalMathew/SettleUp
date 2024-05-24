@@ -6,6 +6,7 @@ import ContractFunctionContextProvider from "@/Context/ContractContext";
 import AIContextProvider from "@/Context/AIContext";
 import {useRouter} from "next/router";
 import {useEffect, useState} from "react";
+import {moonbaseAlpha} from "viem/chains";
 
 export default function App({Component, pageProps}: AppProps) {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function App({Component, pageProps}: AppProps) {
         embeddedWallets: {
           createOnLogin: "off",
         },
+        supportedChains: [moonbaseAlpha],
       }}
       onSuccess={() => router.push("/dashboard")}
     >
