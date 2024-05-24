@@ -22,12 +22,14 @@ interface ContractFunctionContextProps {
   getContractInstance?: () => void;
   performBatchTransaction?: () => void;
   gaslessTransaction?: (functionName: string, args: any) => void;
+  groups?: any[];
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
   getContractInstance: () => { },
   performBatchTransaction: () => { },
   gaslessTransaction: (functionName: string, args: any) => { },
+  groups: []
 });
 
 
@@ -37,7 +39,7 @@ export default function ContractFunctionContextProvider({
   children: ReactNode;
 }) {
 
-  const CONTRACT_ADDRESS = "0xb3be431a0A1a4eD5c2a2B6ea240732908A9A0E22";
+  const CONTRACT_ADDRESS = "0xDD02674D915b3FD1Cff72531276428Eca20D9ee0";
   const { wallets } = useWallets();
 
   const [provider, setProvider] = useState<EIP1193Provider>();
@@ -50,6 +52,7 @@ export default function ContractFunctionContextProvider({
       })();
     }
   }, [wallets]);
+
 
 
   const getContractInstance = async (CONTRACT_ADDRESS: `0x${string}`, settleUpABI: any) => {
@@ -101,7 +104,6 @@ export default function ContractFunctionContextProvider({
     );
     console.log(batchAll, "batchAll")
   }
-
 
 
   const gaslessTransaction = async (functionName: string, args: any) => {
@@ -242,9 +244,61 @@ export default function ContractFunctionContextProvider({
 
   }
 
+  const [groups, setGroups] = useState<any[]>([])
+
+  const viewAllGroups = async () => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const groups: any = await contract.read.getGroupsForMember([wallets[0].address as `0x${string}`]);
+    console.log(groups, "groups")
+
+    const groupNumbers = groups[0] as any;
+    const groupNames = groups[1] as any;
+    const groupCategories = groups[2] as any;
+    const groupFrom = groups[3] as any;
+    const groupTo = groups[4] as any;
+
+    const tempGroups = [];
+    for (let i = 0; i < groupNumbers.length; i++) {
+      tempGroups.push({
+        groupNumber: Number(groupNumbers[i]),
+        groupName: groupNames[i],
+        groupCategory: groupCategories[i],
+        groupFrom: groupFrom[i],
+        groupTo: groupTo[i]
+      })
+    }
+    console.log(tempGroups, "tempGroups")
+    setGroups(tempGroups)
+    // return groups;
+  }
+
+  const getGroupMembers = async (groupId: number) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const groupMembers = await contract.read.getGroupMembers([groupId])
+    console.log(groupMembers, "groupMembers")
+
+  }
+
+  const viewAllExpensesOfGroup = async (groupId: number) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const expenses = await contract.read.getExpensesOfGroup([groupId])
+    console.log(expenses, "expenses")
+  }
+
+  const getAllDebts = async (groupId: number) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const debts = await contract.read.getAllDebts([groupId])
+    console.log(debts, "debts")
+  }
+
+  useEffect(() => {
+    if (provider) {
+      viewAllGroups();
+    }
+  }, [provider])
 
   return (
-    <ContractFunctionContext.Provider value={{ performBatchTransaction, gaslessTransaction }}>
+    <ContractFunctionContext.Provider value={{ performBatchTransaction, gaslessTransaction, groups }}>
       {children}
     </ContractFunctionContext.Provider>
   );

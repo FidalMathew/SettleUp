@@ -130,25 +130,46 @@ const data = [
 ];
 
 export default function Dashboard() {
+  const { performBatchTransaction, getContractInstance, gaslessTransaction, groups } = useContractFunctionContextHook();
+
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
   const router = useRouter();
   // const {ready, user, logout} = usePrivy();
   const { ready, wallets } = useWallets();
+
   useEffect(() => {
     if (ready && !wallets[0]) {
       router.push("/");
     }
+
   }, [wallets]);
 
-  const { performBatchTransaction, getContractInstance, createGroup, gaslessTransaction } = useContractFunctionContextHook();
+  useEffect(() => {
+    console.log(groups, "groups---")
+  }, [groups])
+
+
+
+  function formatDate(dateString: string) {
+    // Create a new Date object from the input string
+    const date = new Date(dateString);
+
+    // Extract the day, month, and year
+    const day = date.getDate();
+    const month = date.getMonth() + 1; // Months are zero-based
+    const year = date.getFullYear();
+
+    // Format the date as DD-MM-YYYY
+    const formattedDate = `${day}-${month}-${year}`;
+
+    return formattedDate;
+  }
 
   const handleCreateGroup = async (values: any) => {
     const { groupName, dateRange, category } = values;
-    // if (createGroup) {
-    //   createGroup([groupName]);
-    // }
+
     if (gaslessTransaction) {
-      gaslessTransaction("createGroup", [groupName]);
+      gaslessTransaction("createGroup", [groupName, category, formatDate(dateRange.from), formatDate(dateRange.to)]);
     }
   }
 

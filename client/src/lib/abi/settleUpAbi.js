@@ -174,6 +174,21 @@ export const settleUpABI = [
         name: "name",
         type: "string",
       },
+      {
+        internalType: "string",
+        name: "category",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "from",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "to",
+        type: "string",
+      },
     ],
     name: "createGroup",
     outputs: [],
@@ -239,6 +254,64 @@ export const settleUpABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "groupId",
+        type: "uint256",
+      },
+    ],
+    name: "getGroupMembers",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "member",
+        type: "address",
+      },
+    ],
+    name: "getGroupsForMember",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
+        name: "",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "groupCount",
     outputs: [
@@ -264,6 +337,21 @@ export const settleUpABI = [
       {
         internalType: "string",
         name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "category",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "from",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "to",
         type: "string",
       },
       {
