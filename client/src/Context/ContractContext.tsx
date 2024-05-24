@@ -19,23 +19,24 @@ import { ethers } from 'ethers'
 
 
 interface ContractFunctionContextProps {
-  createGroup?: (args: any) => void;
   getContractInstance?: () => void;
   performBatchTransaction?: () => void;
-  gaslessTransaction?: () => void;
+  gaslessTransaction?: (functionName: string, args: any) => void;
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
-  createGroup: (args: any) => { },
   getContractInstance: () => { },
   performBatchTransaction: () => { },
-  gaslessTransaction: () => { },
+  gaslessTransaction: (functionName: string, args: any) => { },
 });
+
+
 export default function ContractFunctionContextProvider({
   children,
 }: {
   children: ReactNode;
 }) {
+
   const CONTRACT_ADDRESS = "0xb3be431a0A1a4eD5c2a2B6ea240732908A9A0E22";
   const { wallets } = useWallets();
 
@@ -50,30 +51,6 @@ export default function ContractFunctionContextProvider({
     }
   }, [wallets]);
 
-  const createGroup = async (args: any) => {
-    try {
-      const walletClient = createWalletClient({
-        account: wallets[0].address as `0x${string}`,
-        chain: moonbaseAlpha,
-        transport: custom(provider!),
-      });
-
-      const publicClient = createPublicClient({
-        chain: moonbaseAlpha,
-        transport: custom(provider!),
-      });
-
-      const { request } = await publicClient.simulateContract({
-        address: CONTRACT_ADDRESS,
-        abi: settleUpABI,
-        functionName: "createGroup",
-        args: args,
-      });
-      await walletClient.writeContract(request);
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   const getContractInstance = async (CONTRACT_ADDRESS: `0x${string}`, settleUpABI: any) => {
 
@@ -101,20 +78,19 @@ export default function ContractFunctionContextProvider({
     return contract;
   }
 
-  const createGroupCalldata = encodeFunctionData({
-    abi: settleUpABI,
-    functionName: 'createGroup',
-    args: ['VIT']
-  })
-
-  const batchAddress = "0x0000000000000000000000000000000000000808";
-  // const batch = await ethers.getContractAt("Batch", batchAddress);
-
-  // const settleUpContract = getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-
-  console.log(createGroupCalldata, "createGroupCalldata")
 
   const performBatchTransaction = async () => {
+
+    const createGroupCalldata = encodeFunctionData({
+      abi: settleUpABI,
+      functionName: 'createGroup',
+      args: ['VIT']
+    })
+
+    const batchAddress = "0x0000000000000000000000000000000000000808";
+
+    console.log(createGroupCalldata, "createGroupCalldata")
+
     const batchContract = await getContractInstance(batchAddress, batchABI);
     console.log(batchContract, "batchContract")
     const batchAll = await batchContract.write.batchAll(
@@ -124,14 +100,11 @@ export default function ContractFunctionContextProvider({
       []],
     );
     console.log(batchAll, "batchAll")
-    // await batchAll.wait();
-    // console.log(`worked: ${batchAll.hash}`);
   }
-  // performBatchTransaction();
 
 
 
-  const gaslessTransaction = async () => {
+  const gaslessTransaction = async (functionName: string, args: any) => {
 
     const PKey: string = process.env.NEXT_PUBLIC_PRIVATE_KEY || "";
     console.log(PKey, "PKey")
@@ -151,12 +124,10 @@ export default function ContractFunctionContextProvider({
       ],
     };
 
-    const settleUpContract = getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-
-    const createGroupCalldata = encodeFunctionData({
+    const callData = encodeFunctionData({
       abi: settleUpABI,
-      functionName: 'createGroup',
-      args: ['VIT']
+      functionName: functionName,
+      args: args
     })
 
 
@@ -168,11 +139,10 @@ export default function ContractFunctionContextProvider({
     const gasEstimate = await publicClient.estimateGas({
       account: wallets[0].address as `0x${string}`,
       to: CONTRACT_ADDRESS,
-      data: createGroupCalldata
+      data: callData
     })
 
     console.log(gasEstimate, 'estimate gas')
-    const gaslessContractInstance = await getContractInstance(batchAddress, batchABI);
 
     const privateWalletClient = createWalletClient({
       account: account.address as `0x${string}`,
@@ -228,7 +198,7 @@ export default function ContractFunctionContextProvider({
       from: wallets[0].address,
       to: CONTRACT_ADDRESS, // Cartographer V1 contract
       value: 0,
-      data: createGroupCalldata,
+      data: callData,
       gaslimit: BigInt(gasEstimate) + BigInt(50000),
       nonce: BigInt(nonce),
       deadline: "1714762357000", // Randomly created deadline in the future
@@ -247,9 +217,6 @@ export default function ContractFunctionContextProvider({
     const signature = await userWalletClient.signTypedData({ domain, types, primaryType: 'CallPermit', message });
     console.log(`Signature hash: ${signature}`);
 
-
-    // const signature = await userSigner.signTypedData(domain, types, message);
-    console.log(`Signature hash: ${signature}`);
 
     const formattedSignature = ethers.Signature.from(signature);
 
@@ -273,32 +240,11 @@ export default function ContractFunctionContextProvider({
     await dispatch.wait();
     console.log(`Transaction hash: ${dispatch.hash}`);
 
-
-    // console.log(dispatch, "workingg");
-
-    // const formattedSignature = ethers.Signature.from(signature);
-
-    // // This gets dispatched using the dApps signer
-    // const dispatch = await callPermit.dispatch(
-    //   message.from,
-    //   message.to,
-    //   message.value,
-    //   message.data,
-    //   message.gaslimit,
-    //   message.deadline,
-    //   formattedSignature.v,
-    //   formattedSignature.r,
-    //   formattedSignature.s
-    // );
-
-    // await dispatch.wait();
-    // console.log(`Transaction hash: ${dispatch.hash}`);
   }
 
 
-
   return (
-    <ContractFunctionContext.Provider value={{ createGroup, performBatchTransaction, gaslessTransaction }}>
+    <ContractFunctionContext.Provider value={{ performBatchTransaction, gaslessTransaction }}>
       {children}
     </ContractFunctionContext.Provider>
   );

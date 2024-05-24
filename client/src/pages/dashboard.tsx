@@ -147,7 +147,9 @@ export default function Dashboard() {
     // if (createGroup) {
     //   createGroup([groupName]);
     // }
-    gaslessTransaction();
+    if (gaslessTransaction) {
+      gaslessTransaction("createGroup", [groupName]);
+    }
   }
 
 
