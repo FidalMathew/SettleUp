@@ -122,7 +122,12 @@ const data = [
 ];
 
 export default function Dashboard() {
-  const { performBatchTransaction, getContractInstance, gaslessTransaction, groups } = useContractFunctionContextHook();
+  const {
+    performBatchTransaction,
+    getContractInstance,
+    gaslessTransaction,
+    groups,
+  } = useContractFunctionContextHook();
 
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
   const router = useRouter();
@@ -132,14 +137,11 @@ export default function Dashboard() {
     if (ready && !wallets[0]) {
       router.push("/");
     }
-
   }, [wallets]);
 
   useEffect(() => {
-    console.log(groups, "groups---")
-  }, [groups])
-
-
+    console.log(groups, "groups---");
+  }, [groups]);
 
   function formatDate(dateString: string) {
     // Create a new Date object from the input string
@@ -157,17 +159,15 @@ export default function Dashboard() {
   }
 
   const handleCreateGroup = async (values: any) => {
-    const { groupName, dateRange, category } = values;
+    const {groupName, dateRange, category} = values;
 
     if (gaslessTransaction) {
-      gaslessTransaction("createGroup", [groupName, category, formatDate(dateRange.from), formatDate(dateRange.to)]);
-  const {performBatchTransaction, getContractInstance, createGroup} =
-    useContractFunctionContextHook();
-
-  const handleCreateGroup = async (values: any) => {
-    const {groupName, dateRange, category} = values;
-    if (createGroup) {
-      createGroup([groupName]);
+      gaslessTransaction("createGroup", [
+        groupName,
+        category,
+        formatDate(dateRange.from),
+        formatDate(dateRange.to),
+      ]);
     }
   };
 
