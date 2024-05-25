@@ -1,117 +1,5 @@
 export const settleUpABI = [
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "groupId",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "debtor",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "creditor",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "usdcAmount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "linkAmount",
-        type: "uint256",
-      },
-    ],
-    name: "DebtPaidInLink",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "groupId",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "debtor",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "creditor",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "ExpenseUpdated",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "groupId",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "string",
-        name: "name",
-        type: "string",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "creator",
-        type: "address",
-      },
-    ],
-    name: "GroupCreated",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "groupId",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "member",
-        type: "address",
-      },
-    ],
-    name: "MemberAdded",
-    type: "event",
-  },
-  {
     inputs: [
       {
         internalType: "uint256",
@@ -273,6 +161,11 @@ export const settleUpABI = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
         internalType: "uint256",
         name: "groupId",
         type: "uint256",
@@ -291,6 +184,11 @@ export const settleUpABI = [
   },
   {
     inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
       {
         internalType: "uint256",
         name: "groupId",
@@ -415,7 +313,13 @@ export const settleUpABI = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
     name: "getTotalCredit",
     outputs: [
       {
@@ -428,7 +332,13 @@ export const settleUpABI = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
     name: "getTotalDebt",
     outputs: [
       {

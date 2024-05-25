@@ -23,6 +23,14 @@ interface ContractFunctionContextProps {
   groups?: any[];
   totalCredit?: number;
   totalDebt?: number;
+  fetchName?: (address: string) => void;
+  fetchAddress?: (name: string) => void;
+  getGroupMembers?: (groupId: number) => void;
+  getGroupSpending?: (groupId: number) => void;
+  getDebt?: (groupId: number, debtor: string, creditor: string) => void;
+  payDebt?: (groupId: number, creditor: string, token: number) => void;
+  getAmountRemainingToBePaid?: (account: string, groupId: number) => void;
+  getAmountRemainingToBeReceived?: (account: string, groupId: number) => void;
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
@@ -31,7 +39,15 @@ const ContractFunctionContext = createContext<ContractFunctionContextProps>({
   gaslessTransaction: (functionName: string, args: any) => { },
   groups: [],
   totalCredit: 0,
-  totalDebt: 0
+  totalDebt: 0,
+  fetchName: (address: string) => { },
+  fetchAddress: (name: string) => { },
+  getGroupMembers: (groupId: number) => { },
+  getGroupSpending: (groupId: number) => { },
+  getDebt: (groupId: number, debtor: string, creditor: string) => { },
+  payDebt: (groupId: number, creditor: string, token: number) => { },
+  getAmountRemainingToBePaid: (account: string, groupId: number) => { },
+  getAmountRemainingToBeReceived: (account: string, groupId: number) => { },
 });
 
 export default function ContractFunctionContextProvider({
@@ -39,7 +55,7 @@ export default function ContractFunctionContextProvider({
 }: {
   children: ReactNode;
 }) {
-  const CONTRACT_ADDRESS = "0x2b06bFDe18Ac8619177DDaE76e683fa12F326b3d";
+  const CONTRACT_ADDRESS = "0xF73972ACe5Bd3A9363Bc1F12052f18fAeF26139B";
   const { wallets } = useWallets();
   const [provider, setProvider] = useState<EIP1193Provider>();
 
@@ -290,11 +306,15 @@ export default function ContractFunctionContextProvider({
       });
   }, [groupIds]);
 
+
+
+
   const getGroupMembers = async (groupId: number) => {
     const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
     if (!contract) return;
     const groupMembers = await contract.read.getGroupMembers([groupId]);
     console.log(groupMembers, "groupMembers");
+    return groupMembers;
   };
 
   const viewAllExpensesOfGroup = async (groupId: number) => {
@@ -302,6 +322,7 @@ export default function ContractFunctionContextProvider({
     if (!contract) return;
     const expenses = await contract.read.getExpensesOfGroup([groupId]);
     console.log(expenses, "expenses");
+    return expenses;
   };
 
   const getAllDebts = async (groupId: number) => {
@@ -309,6 +330,7 @@ export default function ContractFunctionContextProvider({
     if (!contract) return;
     const debts = await contract.read.getAllDebts([groupId]);
     console.log(debts, "debts");
+    return debts;
   };
 
   const [totalCredit, setTotalCredit] = useState<number>(0);
@@ -316,17 +338,67 @@ export default function ContractFunctionContextProvider({
 
   const getTotalCredit = async () => {
     const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-    const totalCredit = await contract?.read.getTotalCredit([])
+    const totalCredit = await contract?.read.getTotalCredit([wallets[0].address as `0x${string}`])
     console.log(totalCredit, "totalCredit")
     setTotalCredit(Number(totalCredit));
   }
 
   const getTotalDebt = async () => {
     const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-    const totalDebt = await contract?.read.getTotalDebt([])
+    const totalDebt = await contract?.read.getTotalDebt([wallets[0].address as `0x${string}`])
     console.log(totalDebt, "totalDebt")
     setTotalDebt(Number(totalDebt));
   }
+
+
+  const fetchName = async (address: string) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const name = await contract?.read.fetchName([address])
+    console.log(name, "name")
+  }
+
+  const fetchAddress = async (name: string) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const address = await contract?.read.fetchAddress([name])
+    console.log(address, "address")
+  }
+
+  const getGroupSpending = async (groupId: number) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const groupSpending = await contract?.read.getGroupSpending([groupId])
+    console.log(groupSpending, "groupSpending")
+    return groupSpending;
+  }
+
+
+  // getDebt(uint256 groupId, address debtor, address creditor) 
+  const getDebt = async (groupId: number, debtor: string, creditor: string) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const debt = await contract?.read.getDebt([groupId, debtor, creditor])
+    console.log(debt, "debt")
+  }
+
+  // function payDebt(uint256 _groupId, address _creditor, uint256 token) public {
+  const payDebt = async (groupId: number, creditor: string, token: number) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const payDebt = await contract?.write.payDebt([groupId, creditor, token])
+    console.log(payDebt, "payDebt")
+  }
+
+  // function getAmountRemainingToBePaid(address account, uint256 groupId) public view returns(uint256) {
+  const getAmountRemainingToBePaid = async (account: string, groupId: number) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const amount = await contract?.read.getAmountRemainingToBePaid([account, groupId])
+    console.log(amount, "amount")
+  }
+
+  // function getAmountRemainingToBeReceived(address account, uint256 groupId) public view returns(uint256) {
+  const getAmountRemainingToBeReceived = async (account: string, groupId: number) => {
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    const amount = await contract?.read.getAmountRemainingToBeReceived([account, groupId])
+    console.log(amount, "amount")
+  }
+
 
   useEffect(() => {
     if (provider) {
@@ -338,7 +410,7 @@ export default function ContractFunctionContextProvider({
 
   return (
     <ContractFunctionContext.Provider
-      value={{ performBatchTransaction, gaslessTransaction, groups, totalDebt, totalCredit }}
+      value={{ performBatchTransaction, gaslessTransaction, groups, totalDebt, totalCredit, getGroupMembers, fetchName, fetchAddress, getGroupSpending, getDebt, payDebt, getAmountRemainingToBePaid, getAmountRemainingToBeReceived }}
     >
       {children}
     </ContractFunctionContext.Provider>

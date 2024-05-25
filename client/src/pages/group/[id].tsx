@@ -46,6 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
 import { Field, Form, Formik } from "formik";
 import { emoji } from "@/lib/emoji";
+import { useContractFunctionContextHook } from "@/Context/ContractContext";
 
 interface SplitArray {
   name: string;
@@ -55,6 +56,17 @@ interface SplitArray {
 
 export default function Groups() {
   const router = useRouter();
+
+  const {
+    performBatchTransaction,
+    getContractInstance,
+    gaslessTransaction,
+    groups,
+    getGroupMembers,
+    fetchName,
+    fetchAddress,
+    getGroupSpending
+  } = useContractFunctionContextHook();
 
   const [addExpenseBox, setAddExpenseBox] = useState(false);
   const [addMemberBox, setAddMemberBox] = useState(false);
@@ -72,7 +84,9 @@ export default function Groups() {
   const [amountRemaining, setAmountRemaining] = useState(amount);
   const [equalSplit, setEqualSplit] = useState(true);
 
-  const MembersArray = [{ name: "Manvik" }, { name: "Jaydeep" }, { name: "Fidal" }];
+  // const MembersArray = [{ name: "Manvik" }, { name: "Jaydeep" }, { name: "Fidal" }];
+  const [MembersArray, setMembersArray] = useState<any>([]);
+
   useEffect(() => {
     const newArray = Array.from({ length: MembersArray.length }).map(
       (_, index) => {
@@ -96,7 +110,7 @@ export default function Groups() {
     setUnequallySplitArray(newArray);
 
     setSplitArray(newArrayUnequallySplit);
-  }, []);
+  }, [MembersArray]);
 
   useEffect(() => {
     const checked = splitArray.filter((item) => item.isChecked);
@@ -147,6 +161,81 @@ export default function Groups() {
   const groupId = router.query.id;
   console.log(groupId, "groupId");
 
+  const [groupDetails, setGroupDetails] = useState<any>(null);
+
+  const [groupSpending, setGroupSpending] = useState<number>(0);
+  useEffect(() => {
+    if (groupId && groups) {
+      console.log(groups, "groups dsa");
+
+      const group = groups.find((group) => group.groupNumber === Number(groupId));
+      console.log(group, "group");
+
+
+
+      setGroupDetails(group);
+    }
+    (async () => {
+      if (groupId && getGroupMembers && fetchName) {
+        try {
+          const res: string[] | undefined = await getGroupMembers(Number(groupId));
+          console.log(res, "groupMembers---");
+
+          let temp: any[] = [];
+
+          if (res !== undefined) {
+            const namePromises = res.map(async (address) => {
+              const name = await fetchName(address);
+              return { name: name === undefined ? "no-name" : name, address };
+            });
+
+            temp = await Promise.all(namePromises);
+          }
+
+          console.log(temp, "temp");
+
+          setMembersArray(temp);
+        } catch (error) {
+          console.error("Error fetching group members or names:", error);
+        }
+      }
+
+      if (getGroupSpending) {
+        const spending = await getGroupSpending(Number(groupId));
+        console.log(spending, "spending");
+        if (typeof spending === 'number') {
+          setGroupSpending(spending);
+        }
+      }
+
+    })();
+
+
+  }, [groupId, groups]);
+
+  const handleAddGroupMember = async (values: any) => {
+    if (!gaslessTransaction) return console.log("gaslessTransaction not found")
+
+    const res = gaslessTransaction("addMember", [groupId, values.wallet]);
+    console.log(res, "res");
+  };
+
+  const handleAddExpense = async (values: any) => {
+    if (!gaslessTransaction) return console.log("gaslessTransaction not found")
+    console.log(values, "values- expense");
+
+    const creditor = values.paidBy;
+    const amount = values.amount;
+
+    const nonCreditors = values.splitArray.filter((member: any) => member.address !== creditor);
+
+    console.log(nonCreditors, "nonCreditors");
+
+    // const res = gaslessTransaction("addExpense", [groupId, values.amount, values.description, values.paidBy, values.category, values.date, values.splitArray, values.unequallySplitArray, values.equalSplit]);
+    // console.log(res, "res");
+  }
+
+
   return (
     <div className="h-screen w-full">
       <SearchBox openAIBox={openAIBox} setOpenAIBox={setOpenAIBox} />
@@ -174,6 +263,7 @@ export default function Groups() {
                 onSubmit={(values, action) => {
                   // action.resetForm()
                   console.log(values);
+                  handleAddExpense(values);
                 }}
               >
                 {(formik) => (
@@ -233,40 +323,23 @@ export default function Groups() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectItem value="jaydeep">
-                                {/* picture and text */}
+                              {
+                                MembersArray.map((item: any, index: number) => (
+                                  <SelectItem value={item.address}>
+                                    {/* picture and text */}
 
-                                <div className="flex items-center gap-3">
-                                  <img
-                                    src="/man.png"
-                                    alt="man"
-                                    className="h-6 w-6"
-                                  />
-                                  <p>Fidal</p>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="fidal">
-                                {/* picture and text */}
+                                    <div className="flex items-center gap-3">
+                                      <img
+                                        src="/man.png"
+                                        alt="man"
+                                        className="h-6 w-6"
+                                      />
+                                      <p>{item.name}</p>
+                                    </div>
+                                  </SelectItem>))
 
-                                <div className="flex items-center gap-3">
-                                  <img
-                                    src="/man.png"
-                                    alt="man"
-                                    className="h-6 w-6"
-                                  />
-                                  <p>Jaydeep</p>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="manvik">
-                                <div className="flex items-center gap-3">
-                                  <img
-                                    src="/user.png"
-                                    alt="user"
-                                    className="h-6 w-6"
-                                  />
-                                  <p>Manvik</p>
-                                </div>
-                              </SelectItem>
+                              }
+
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -360,12 +433,13 @@ export default function Groups() {
                                 className="mr-2 h-4 w-4"
                                 mode="single"
                               />
-                              {date ? (
-                                format(date, "PPP")
+                              {formik.values.date ? (
+                                format(formik.values.date, "PPP")
                               ) : (
                                 <span>Pick a date</span>
                               )}
                             </Button>
+
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
                             <Calendar
@@ -440,7 +514,7 @@ export default function Groups() {
                             className="w-full"
                           >
                             <CarouselContent className="w-full">
-                              {MembersArray.map((item, index) => (
+                              {MembersArray.map((item: any, index: number) => (
                                 <CarouselItem className="basis-1/3" key={index}>
                                   <div className="flex flex-col gap-1">
                                     <Checkbox
@@ -540,7 +614,7 @@ export default function Groups() {
                             </p>
                           </div>
                           <div className="flex flex-col gap-3 border p-2 h-[250px] overflow-y-auto expense-box placeholder pb-[33px]">
-                            {MembersArray.map((_, index) => (
+                            {MembersArray.map((_: any, index: number) => (
                               <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50">
                                 <div className="flex gap-3 items-center">
                                   <Checkbox
@@ -687,7 +761,8 @@ export default function Groups() {
                   avatarPath: "/user.png",
                 }}
                 onSubmit={(values, action) => {
-                  console.log(values);
+                  // console.log(values);
+                  handleAddGroupMember(values);
                 }}
               >
                 {(formik) => (
@@ -807,7 +882,7 @@ export default function Groups() {
           </Avatar>
           <div className="flex-col justify-start gap-2 flex text-[#3D405B]">
             <p className="text-2xl lg:text-4xl font-semibold mt-4 lg:mt-0">
-              Trip to Bangalore
+              {groupDetails?.name}
             </p>
             <p>24 Jan 2024 to 28 Jan 2024</p>
           </div>
@@ -847,7 +922,7 @@ export default function Groups() {
             </div>
           </CardHeader>
           <CardContent className="p-4 pb-6">
-            <p className="text-3xl font-bold text-[#3D405B]">5000 USDC</p>
+            <p className="text-3xl font-bold text-[#3D405B]">{groupSpending} USD</p>
           </CardContent>
         </Card>
         <Card className="h-fit w-64 border-2 rounded-xl">
@@ -857,7 +932,7 @@ export default function Groups() {
             </div>
           </CardHeader>
           <CardContent className="p-4 pb-6">
-            <p className="text-3xl font-bold text-[#3D405B]">5000 USDC</p>
+            <p className="text-3xl font-bold text-[#3D405B]">5000 USD</p>
           </CardContent>
         </Card>
       </div>
@@ -932,7 +1007,7 @@ export default function Groups() {
           <div className="p-4 border-b font-semibold text-xl sticky top-0 bg-white z-[20] flex justify-between items-center">
             <div>
               <p className="text-sm">Group Members</p>
-              <p className="text-xs font-normal">4 Members</p>
+              <p className="text-xs font-normal">{MembersArray.length} Members</p>
             </div>
             <div>
               <TooltipProvider>
@@ -953,7 +1028,7 @@ export default function Groups() {
               </TooltipProvider>
             </div>
           </div>
-          {Array.from({ length: 4 }).map((_, index) => (
+          {MembersArray.map((member: any, index: number) => (
             <div className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3">
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14">
@@ -961,9 +1036,10 @@ export default function Groups() {
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <p className="text-lg font-semibold">Jaydeep</p>
+                  <p className="text-lg font-semibold">{member.name}</p>
                   <p className="text-xs text-green-700 font-semibold">
                     Fidal and Manvik owe 20 USDC
+                    {member.address}
                   </p>
                   {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
                 </div>
