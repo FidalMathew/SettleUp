@@ -7,6 +7,9 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 contract SettleUp {
     struct Group {
         string name;
+        string category;
+        string from;
+        string to;
         address[] members;
         mapping(address => mapping(address => uint256)) debts;
         uint256 spending;
@@ -25,44 +28,110 @@ contract SettleUp {
     mapping(uint256 => Group) public groups;
     uint256 public groupCount;
 
-    event GroupCreated(uint256 groupId, string name, address creator);
-    event MemberAdded(uint256 groupId, address member);
-    event ExpenseUpdated(
-        uint256 groupId,
-        address debtor,
-        address creditor,
-        uint256 amount
-    );
-    event DebtPaidInLink(
-        uint256 groupId,
-        address indexed debtor,
-        address indexed creditor,
-        uint256 usdcAmount,
-        uint256 linkAmount
-    );
+    // constructor() {
+    //     createGroup("Testing", "food", "12-1-2024", "15-1-2024");
+    //     addMember(1, 0xecC6E5aA22E2Bb7aDD9296e5E7113E1A44C4D736);
 
-    modifier onlyGroupMember(uint256 groupId) {
-        require(isMember(groupId, msg.sender), "Not a member of the group");
-        _;
+    //     uint256[] memory val2 = new uint256[](1);
+    //     val2[0] = 10;
+
+    //     address[] memory members = new address[](1);
+    //     members[0] = 0xecC6E5aA22E2Bb7aDD9296e5E7113E1A44C4D736;
+
+    //     addExpense(1, msg.sender, members, val2, 20);
+    // }
+
+    mapping(string => address) nameMap;
+    mapping(address => string) addressMap;
+
+    function createUser(string memory _name) public {
+        require(nameMap[_name] == address(0), "Username already exists");
+
+        nameMap[_name] = msg.sender;
+        addressMap[msg.sender] = _name;
     }
 
-    function createGroup(string memory name) public {
+    function fetchName(address user) public view returns (string memory) {
+        return addressMap[user];
+    }
+
+    function fetchAddress(string memory user) public view returns (address) {
+        return nameMap[user];
+    }
+
+    function createGroup(
+        string memory name,
+        string memory category,
+        string memory from,
+        string memory to
+    ) public {
         groupCount++;
         Group storage newGroup = groups[groupCount];
         newGroup.name = name;
+        newGroup.category = category;
+        newGroup.from = from;
+        newGroup.to = to;
         newGroup.members.push(msg.sender);
-
-        emit GroupCreated(groupCount, name, msg.sender);
+        newGroup.spending = 0;
     }
 
-    function addMember(
-        uint256 groupId,
+    function getGroupsForMember(
         address member
-    ) public onlyGroupMember(groupId) {
+    )
+        public
+        view
+        returns (
+            uint256[] memory,
+            string[] memory,
+            string[] memory,
+            string[] memory,
+            string[] memory
+        )
+    {
+        uint256 count = 0;
+        for (uint256 i = 1; i <= groupCount; i++) {
+            if (isMember(i, member)) {
+                count++;
+            }
+        }
+
+        uint256[] memory groupIds = new uint256[](count);
+        string[] memory names = new string[](count);
+        string[] memory categories = new string[](count);
+        string[] memory fromDates = new string[](count);
+        string[] memory toDates = new string[](count);
+
+        uint256 index = 0;
+        for (uint256 i = 1; i <= groupCount; i++) {
+            if (isMember(i, member)) {
+                Group storage group = groups[i];
+                groupIds[index] = i;
+                names[index] = group.name;
+                categories[index] = group.category;
+                fromDates[index] = group.from;
+                toDates[index] = group.to;
+                index++;
+            }
+        }
+
+        return (groupIds, names, categories, fromDates, toDates);
+    }
+
+    function getGroupSpending(uint256 groupId) public view returns (uint256) {
+        require(groupId <= groupCount, "Group does not exist");
+        return groups[groupId].spending;
+    }
+
+    function addMember(uint256 groupId, address member) public {
         require(!isMember(groupId, member), "Already a member of the group");
         groups[groupId].members.push(member);
+    }
 
-        emit MemberAdded(groupId, member);
+    function getGroupMembers(
+        uint256 groupId
+    ) public view returns (address[] memory) {
+        Group storage group = groups[groupId];
+        return group.members;
     }
 
     function addExpense(
@@ -71,7 +140,7 @@ contract SettleUp {
         address[] memory _debtors,
         uint256[] memory _amounts,
         uint256 _total
-    ) public onlyGroupMember(_groupId) {
+    ) public {
         require(
             isMember(_groupId, _creditor),
             "Debtor is not a member of the group"
@@ -204,8 +273,8 @@ contract SettleUp {
 
         if (token == 0) {
             // LINK
-            _tokenAddress = 0x0F5CC78D949c3cD5B6264A9Fb1a423A6075bf68A;
-            priceFeed = 0x5310f2d4B531BCEA8126e2aEE40BAd71B707f530;
+            _tokenAddress = 0x779877A7B0D9E8603169DdbD7836e478b4624789;
+            priceFeed = 0xc59E3633BAAC79493d908e63626716e204A45EdF;
 
             payInLink(
                 _creditor,
@@ -226,7 +295,7 @@ contract SettleUp {
         uint256 usdAmount,
         address _link,
         address _priceFeed
-    ) private {
+    ) public {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(_priceFeed);
         ERC20 link = ERC20(_link);
 
@@ -245,5 +314,79 @@ contract SettleUp {
             link.transferFrom(msg.sender, creditor, linkAmount),
             "LINK transfer failed"
         );
+    }
+
+    function getAmountRemainingToBePaid(
+        address account,
+        uint256 groupId
+    ) public view returns (uint256) {
+        Group storage group = groups[groupId];
+        uint256 totalDebt = 0;
+
+        for (uint256 i = 0; i < group.members.length; i++) {
+            address member = group.members[i];
+            if (member != account) {
+                totalDebt += group.debts[account][member];
+            }
+        }
+
+        return totalDebt;
+    }
+
+    function getAmountRemainingToBeReceived(
+        address account,
+        uint256 groupId
+    ) public view returns (uint256) {
+        Group storage group = groups[groupId];
+        uint256 totalCredit = 0;
+
+        for (uint256 i = 0; i < group.members.length; i++) {
+            address member = group.members[i];
+            if (member != account) {
+                totalCredit += group.debts[member][account];
+            }
+        }
+
+        return totalCredit;
+    }
+
+    function getTotalDebt(address sender) public view returns (uint256) {
+        uint256 totalDebt = 0;
+
+        // Iterate over all groups
+        for (uint256 i = 1; i <= groupCount; i++) {
+            if (isMember(i, sender)) {
+                Group storage group = groups[i];
+                // Iterate over all members of the group
+                for (uint256 j = 0; j < group.members.length; j++) {
+                    address member = group.members[j];
+                    if (member != sender) {
+                        totalDebt += group.debts[sender][member];
+                    }
+                }
+            }
+        }
+
+        return totalDebt;
+    }
+
+    function getTotalCredit(address sender) public view returns (uint256) {
+        uint256 totalCredit = 0;
+
+        // Iterate over all groups
+        for (uint256 i = 1; i <= groupCount; i++) {
+            if (isMember(i, sender)) {
+                Group storage group = groups[i];
+                // Iterate over all members of the group
+                for (uint256 j = 0; j < group.members.length; j++) {
+                    address member = group.members[j];
+                    if (member != sender) {
+                        totalCredit += group.debts[member][sender];
+                    }
+                }
+            }
+        }
+
+        return totalCredit;
     }
 }
