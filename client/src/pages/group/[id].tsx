@@ -1,16 +1,16 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, Plus, Sparkles } from "lucide-react";
-import { useRouter } from "next/router";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {CalendarIcon, Plus, Sparkles} from "lucide-react";
+import {useRouter} from "next/router";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
+import {useEffect, useState} from "react";
+import {Input} from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
@@ -19,7 +19,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import { Label } from "@/components/ui/label";
+import {Label} from "@/components/ui/label";
 import {
   Carousel,
   CarouselContent,
@@ -27,12 +27,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format, set } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {cn} from "@/lib/utils";
+import {format, set} from "date-fns";
+import {Calendar} from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -42,11 +42,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import {Badge} from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
-import { Field, Form, Formik } from "formik";
-import { emoji } from "@/lib/emoji";
-import { useContractFunctionContextHook } from "@/Context/ContractContext";
+import {Field, Form, Formik} from "formik";
+import {emoji} from "@/lib/emoji";
+import {useContractFunctionContextHook} from "@/Context/ContractContext";
+import moment from "moment";
 
 interface SplitArray {
   name: string;
@@ -65,7 +66,7 @@ export default function Groups() {
     getGroupMembers,
     fetchName,
     fetchAddress,
-    getGroupSpending
+    getGroupSpending,
   } = useContractFunctionContextHook();
 
   const [addExpenseBox, setAddExpenseBox] = useState(false);
@@ -88,7 +89,7 @@ export default function Groups() {
   const [MembersArray, setMembersArray] = useState<any>([]);
 
   useEffect(() => {
-    const newArray = Array.from({ length: MembersArray.length }).map(
+    const newArray = Array.from({length: MembersArray.length}).map(
       (_, index) => {
         return {
           name: MembersArray[index].name,
@@ -168,17 +169,19 @@ export default function Groups() {
     if (groupId && groups) {
       console.log(groups, "groups dsa");
 
-      const group = groups.find((group) => group.groupNumber === Number(groupId));
+      const group = groups.find(
+        (group) => group.groupNumber === Number(groupId)
+      );
       console.log(group, "group");
-
-
 
       setGroupDetails(group);
     }
     (async () => {
       if (groupId && getGroupMembers && fetchName) {
         try {
-          const res: string[] | undefined = await getGroupMembers(Number(groupId));
+          const res: string[] | undefined = await getGroupMembers(
+            Number(groupId)
+          );
           console.log(res, "groupMembers---");
 
           let temp: any[] = [];
@@ -186,7 +189,7 @@ export default function Groups() {
           if (res !== undefined) {
             const namePromises = res.map(async (address) => {
               const name = await fetchName(address);
-              return { name: name === undefined ? "no-name" : name, address };
+              return {name: name === undefined ? "no-name" : name, address};
             });
 
             temp = await Promise.all(namePromises);
@@ -203,38 +206,70 @@ export default function Groups() {
       if (getGroupSpending) {
         const spending = await getGroupSpending(Number(groupId));
         console.log(spending, "spending");
-        if (typeof spending === 'number') {
+        if (typeof spending === "number") {
           setGroupSpending(spending);
         }
       }
-
     })();
-
-
   }, [groupId, groups]);
 
   const handleAddGroupMember = async (values: any) => {
-    if (!gaslessTransaction) return console.log("gaslessTransaction not found")
+    if (!gaslessTransaction) return console.log("gaslessTransaction not found");
 
     const res = gaslessTransaction("addMember", [groupId, values.wallet]);
     console.log(res, "res");
   };
 
   const handleAddExpense = async (values: any) => {
-    if (!gaslessTransaction) return console.log("gaslessTransaction not found")
+    if (!gaslessTransaction) return console.log("gaslessTransaction not found");
     console.log(values, "values- expense");
 
     const creditor = values.paidBy;
-    const amount = values.amount;
+    let debtors: string[] = [];
+    let amountsArray: number[] = [];
+    if (values.equalSplit && fetchAddress) {
+      const fetchPromises = values.splitArray.map(async (item: any) => {
+        const address = await fetchAddress(item.name);
+        debtors.push(address);
+        amountsArray.push(item.amount);
+      });
 
-    const nonCreditors = values.splitArray.filter((member: any) => member.address !== creditor);
+      // Wait for all promises to resolve
+      await Promise.all(fetchPromises);
+    } else if (!values.equalSplit && fetchAddress) {
+      const fetchPromises = values.unequallySplitArray.map(
+        async (item: any) => {
+          const address = await fetchAddress(item.name);
+          debtors.push(address);
+          amountsArray.push(item.amount);
+        }
+      );
 
-    console.log(nonCreditors, "nonCreditors");
+      // Wait for all promises to resolve
+      await Promise.all(fetchPromises);
+    }
 
-    // const res = gaslessTransaction("addExpense", [groupId, values.amount, values.description, values.paidBy, values.category, values.date, values.splitArray, values.unequallySplitArray, values.equalSplit]);
-    // console.log(res, "res");
-  }
+    console.log(debtors, "debtors");
+    console.log(amountsArray, "debtors amountsArray");
 
+    if (values.equalSplit && debtors.length > 0 && amountsArray.length > 0) {
+      const res = gaslessTransaction("addExpense", [
+        groupId,
+        creditor,
+        debtors,
+        amountsArray,
+      ]);
+      console.log(res, "res");
+    } else {
+      const res = gaslessTransaction("addExpense", [
+        groupId,
+        creditor,
+        debtors,
+        amountsArray,
+      ]);
+      console.log(res, "res");
+    }
+  };
 
   return (
     <div className="h-screen w-full">
@@ -299,7 +334,7 @@ export default function Groups() {
                         name="amount"
                         maxLength={4}
                       />
-                      <p className="text-3xl -translate-y-4">USDC</p>
+                      <p className="text-3xl -translate-y-4">USD</p>
                     </div>
                     <div className="flex justify-between w-[90%] gap-3 m-auto">
                       <div className="w-[60%]">
@@ -323,23 +358,20 @@ export default function Groups() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              {
-                                MembersArray.map((item: any, index: number) => (
-                                  <SelectItem value={item.address}>
-                                    {/* picture and text */}
+                              {MembersArray.map((item: any, index: number) => (
+                                <SelectItem value={item.address}>
+                                  {/* picture and text */}
 
-                                    <div className="flex items-center gap-3">
-                                      <img
-                                        src="/man.png"
-                                        alt="man"
-                                        className="h-6 w-6"
-                                      />
-                                      <p>{item.name}</p>
-                                    </div>
-                                  </SelectItem>))
-
-                              }
-
+                                  <div className="flex items-center gap-3">
+                                    <img
+                                      src="/man.png"
+                                      alt="man"
+                                      className="h-6 w-6"
+                                    />
+                                    <p>{item.name}</p>
+                                  </div>
+                                </SelectItem>
+                              ))}
                             </SelectGroup>
                           </SelectContent>
                         </Select>
@@ -439,7 +471,6 @@ export default function Groups() {
                                 <span>Pick a date</span>
                               )}
                             </Button>
-
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
                             <Calendar
@@ -459,43 +490,50 @@ export default function Groups() {
                       <Tabs
                         defaultValue="equally"
                         className="w-full flex flex-col items-center"
+                        onValueChange={(value) => {
+                          if (value === "equally") {
+                            formik.setFieldValue("equalSplit", true);
+                            setEqualSplit(true);
+                            setUnequallySplitArray((prev) => {
+                              const newArray = [...prev];
+                              newArray.forEach((item, index) => {
+                                newArray[index].isChecked = false;
+                                newArray[index].amount = 0;
+                              });
+
+                              formik.setFieldValue(
+                                "unequallySplitArray",
+                                newArray
+                              );
+                              return newArray;
+                            });
+                          } else {
+                            formik.setFieldValue("equalSplit", false);
+                            setEqualSplit(false);
+
+                            setSplitArray((prev) => {
+                              const newArray = [...prev];
+                              newArray.forEach((item, index) => {
+                                newArray[index].isChecked = false;
+                                newArray[index].amount = 0;
+                              });
+
+                              formik.setFieldValue("splitArray", newArray);
+                              return newArray;
+                            });
+
+                            formik.setFieldValue("splitArray", splitArray);
+                          }
+                        }}
                       >
                         <TabsList className="rounded-full">
                           <TabsTrigger
-                            onClick={() => {
-                              formik.setFieldValue("equalSplit", true);
-                              setEqualSplit(true);
-
-                              // reset the unequallySplitArray to default values
-                              setUnequallySplitArray((prev) => {
-                                const newArray = [...prev];
-                                newArray.forEach((item, index) => {
-                                  newArray[index].isChecked = false;
-                                  newArray[index].amount = 0;
-                                });
-                                return newArray;
-                              });
-                            }}
                             value="equally"
                             className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
                           >
                             Equally
                           </TabsTrigger>
                           <TabsTrigger
-                            onClick={() => {
-                              formik.setFieldValue("equalSplit", false);
-                              setEqualSplit(false);
-
-                              // reset the splitArray to default values
-                              setSplitArray((prev) => {
-                                const newArray = [...prev];
-                                newArray.forEach((item, index) => {
-                                  newArray[index].isChecked = false;
-                                  newArray[index].amount = 0;
-                                });
-                                return newArray;
-                              });
-                            }}
                             value="unequally"
                             className="data-[state=active]:bg-[#81B29A] data-[state=active]:text-white data-[state=active]:rounded-full"
                           >
@@ -574,7 +612,7 @@ export default function Groups() {
                                       <div className="flex flex-col items-center gap-2">
                                         <p>{item.name}</p>
                                         {splitArray[index] &&
-                                          splitArray[index].isChecked ? (
+                                        splitArray[index].isChecked ? (
                                           <p className="text-xs">
                                             {(amount / numberOfChecked).toFixed(
                                               2
@@ -615,7 +653,8 @@ export default function Groups() {
                           </div>
                           <div className="flex flex-col gap-3 border p-2 h-[250px] overflow-y-auto expense-box placeholder pb-[33px]">
                             {MembersArray.map((_: any, index: number) => (
-                              <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50"
+                              <div
+                                className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50"
                                 key={index}
                               >
                                 <div className="flex gap-3 items-center">
@@ -656,7 +695,7 @@ export default function Groups() {
                                       if (!checked) {
                                         setAmountRemaining(
                                           amountRemaining +
-                                          unequallySplitArray[index].amount
+                                            unequallySplitArray[index].amount
                                         );
 
                                         // reset the input field to 0, when you check it back after uncheck the input should be 0, then we can modifiy the amount
@@ -702,10 +741,10 @@ export default function Groups() {
 
                                     setAmountRemaining(
                                       amount -
-                                      unequallySplitArray.reduce(
-                                        (acc, item) => acc + item.amount,
-                                        0
-                                      )
+                                        unequallySplitArray.reduce(
+                                          (acc, item) => acc + item.amount,
+                                          0
+                                        )
                                     );
                                     formik.setFieldValue(
                                       `unequallySplitArray[${index}].amount`,
@@ -872,21 +911,31 @@ export default function Groups() {
           src="/cover.png"
           alt="cover"
           className="object-cover h-full w-full"
-          style={{ objectPosition: "center 30%" }}
+          style={{objectPosition: "center 30%"}}
         />
       </div>
 
       <div className="px-10 lg:px-24 -translate-y-6 flex justify-between flex-col md:flex-row">
         <div className="flex items-center gap-3">
           <Avatar className="h-32 w-32 lg:h-[150px] lg:w-[150px] -translate-y-2 lg:-translate-y-6">
-            <AvatarImage src="/beach.png" />
+            <AvatarImage src="/travel.png" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <div className="flex-col justify-start gap-2 flex text-[#3D405B]">
             <p className="text-2xl lg:text-4xl font-semibold mt-4 lg:mt-0">
-              {groupDetails?.name}
+              {groupDetails?.groupName}
             </p>
-            <p>24 Jan 2024 to 28 Jan 2024</p>
+            <p>
+              {groupDetails &&
+                moment(groupDetails?.groupFrom, "DD-MM-YYYY").format(
+                  "DD MMM YYYY"
+                )}{" "}
+              to{" "}
+              {groupDetails &&
+                moment(groupDetails?.groupTo, "DD-MM-YYYY").format(
+                  "DD MMM YYYY"
+                )}
+            </p>
           </div>
         </div>
         <div className="-translate-y-5 mt-8 flex gap-3 items-center flex-row-reverse">
@@ -924,7 +973,9 @@ export default function Groups() {
             </div>
           </CardHeader>
           <CardContent className="p-4 pb-6">
-            <p className="text-3xl font-bold text-[#3D405B]">{groupSpending} USD</p>
+            <p className="text-3xl font-bold text-[#3D405B]">
+              {groupSpending} USD
+            </p>
           </CardContent>
         </Card>
         <Card className="h-fit w-64 border-2 rounded-xl">
@@ -951,7 +1002,7 @@ export default function Groups() {
               <Plus className="mr-2 h-4 w-4" /> Add Expense
             </Button>
           </div>
-          {Array.from({ length: 8 }).map((_, index) => (
+          {Array.from({length: 8}).map((_, index) => (
             <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4" key={index}>
               <div className="flex items-center gap-3 justify-between">
                 <div className="flex items-center lg:gap-5 gap-3">
@@ -961,7 +1012,7 @@ export default function Groups() {
                   </div>
                   <div className="flex gap-3 items-center translate-y-1">
                     <Avatar className="lg:h-14 lg:w-14 -ml-4 first:ml-0">
-                      <AvatarImage src="/beach.png" />
+                      <AvatarImage src="/travel.png" />
                       <AvatarFallback>JD</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
@@ -991,16 +1042,18 @@ export default function Groups() {
                   </Avatar>
                 </div>
                 <div
-                  className={` font-bold ${index !== 1 ? "text-red-600" : "text-green-600"
-                    }`}
+                  className={` font-bold ${
+                    index !== 1 ? "text-red-600" : "text-green-600"
+                  }`}
                 >
                   300 USDC
                 </div>
               </div>
 
               <div
-                className={` ${index === 7 ? "bg-white" : "bg-gray-200"
-                  } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
+                className={` ${
+                  index === 7 ? "bg-white" : "bg-gray-200"
+                } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
               />
             </div>
           ))}
@@ -1009,7 +1062,9 @@ export default function Groups() {
           <div className="p-4 border-b font-semibold text-xl sticky top-0 bg-white z-[20] flex justify-between items-center">
             <div>
               <p className="text-sm">Group Members</p>
-              <p className="text-xs font-normal">{MembersArray.length} Members</p>
+              <p className="text-xs font-normal">
+                {MembersArray.length} Members
+              </p>
             </div>
             <div>
               <TooltipProvider>
@@ -1031,7 +1086,8 @@ export default function Groups() {
             </div>
           </div>
           {MembersArray.map((member: any, index: number) => (
-            <div className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3"
+            <div
+              className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3"
               key={index}
             >
               <div className="flex items-center gap-3">
@@ -1041,18 +1097,22 @@ export default function Groups() {
                 </Avatar>
                 <div className="flex flex-col">
                   <p className="text-lg font-semibold">{member.name}</p>
-                  <p className="text-xs text-green-700 font-semibold">
+                  {/* <p className="text-xs text-green-700 font-semibold">
                     Fidal and Manvik owe 20 USDC
-                    {member.address}
+                  </p> */}
+                  <p className="text-xs text-green-700 font-semibold">
+                    {member.address.slice(0, 10) +
+                      "...." +
+                      member.address.slice(-6)}
                   </p>
                   {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
                 </div>
               </div>
-              {index === 0 && (
+              {/* {index === 0 && (
                 <div>
                   <Badge className="bg-[#81B29A]">Admin</Badge>
                 </div>
-              )}
+              )} */}
             </div>
           ))}
         </div>
