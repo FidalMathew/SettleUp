@@ -1,16 +1,16 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, Plus, Sparkles } from "lucide-react";
-import { useRouter } from "next/router";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {CalendarIcon, Plus, Sparkles} from "lucide-react";
+import {useRouter} from "next/router";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
+import {useEffect, useState} from "react";
+import {Input} from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
@@ -19,7 +19,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import { Label } from "@/components/ui/label";
+import {Label} from "@/components/ui/label";
 import {
   Carousel,
   CarouselContent,
@@ -27,12 +27,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format, set } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {cn} from "@/lib/utils";
+import {format, set} from "date-fns";
+import {Calendar} from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -42,10 +42,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import {Badge} from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
-import { Field, Form, Formik } from "formik";
-import { emoji } from "@/lib/emoji";
+import {Field, Form, Formik} from "formik";
+import {emoji} from "@/lib/emoji";
 
 interface SplitArray {
   name: string;
@@ -72,9 +72,9 @@ export default function Groups() {
   const [amountRemaining, setAmountRemaining] = useState(amount);
   const [equalSplit, setEqualSplit] = useState(true);
 
-  const MembersArray = [{ name: "Manvik" }, { name: "Jaydeep" }, { name: "Fidal" }];
+  const MembersArray = [{name: "Manvik"}, {name: "Jaydeep"}, {name: "Fidal"}];
   useEffect(() => {
-    const newArray = Array.from({ length: MembersArray.length }).map(
+    const newArray = Array.from({length: MembersArray.length}).map(
       (_, index) => {
         return {
           name: MembersArray[index].name,
@@ -138,11 +138,11 @@ export default function Groups() {
     }
   }, [equalSplit]);
 
-  console.log(amount, "amountRemaining");
-  console.log(numberOfChecked, "numberOfChecked");
-  console.log(numberOfUnequallyChecked, "numberOfUnequallyChecked");
-  console.log(unequallySplitArray, "unequallySplitArray");
-  console.log(splitArray, "splitArray");
+  // console.log(amount, "amountRemaining");
+  // console.log(numberOfChecked, "numberOfChecked");
+  // console.log(numberOfUnequallyChecked, "numberOfUnequallyChecked");
+  // console.log(unequallySplitArray, "unequallySplitArray");
+  // console.log(splitArray, "splitArray");
 
   const groupId = router.query.id;
   console.log(groupId, "groupId");
@@ -500,7 +500,7 @@ export default function Groups() {
                                       <div className="flex flex-col items-center gap-2">
                                         <p>{item.name}</p>
                                         {splitArray[index] &&
-                                          splitArray[index].isChecked ? (
+                                        splitArray[index].isChecked ? (
                                           <p className="text-xs">
                                             {(amount / numberOfChecked).toFixed(
                                               2
@@ -541,7 +541,10 @@ export default function Groups() {
                           </div>
                           <div className="flex flex-col gap-3 border p-2 h-[250px] overflow-y-auto expense-box placeholder pb-[33px]">
                             {MembersArray.map((_, index) => (
-                              <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50">
+                              <div
+                                className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50"
+                                key={index}
+                              >
                                 <div className="flex gap-3 items-center">
                                   <Checkbox
                                     id={`unequallySplitArray${index}`}
@@ -580,7 +583,7 @@ export default function Groups() {
                                       if (!checked) {
                                         setAmountRemaining(
                                           amountRemaining +
-                                          unequallySplitArray[index].amount
+                                            unequallySplitArray[index].amount
                                         );
 
                                         // reset the input field to 0, when you check it back after uncheck the input should be 0, then we can modifiy the amount
@@ -626,10 +629,10 @@ export default function Groups() {
 
                                     setAmountRemaining(
                                       amount -
-                                      unequallySplitArray.reduce(
-                                        (acc, item) => acc + item.amount,
-                                        0
-                                      )
+                                        unequallySplitArray.reduce(
+                                          (acc, item) => acc + item.amount,
+                                          0
+                                        )
                                     );
                                     formik.setFieldValue(
                                       `unequallySplitArray[${index}].amount`,
@@ -795,7 +798,7 @@ export default function Groups() {
           src="/cover.png"
           alt="cover"
           className="object-cover h-full w-full"
-          style={{ objectPosition: "center 30%" }}
+          style={{objectPosition: "center 30%"}}
         />
       </div>
 
@@ -874,8 +877,8 @@ export default function Groups() {
               <Plus className="mr-2 h-4 w-4" /> Add Expense
             </Button>
           </div>
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4">
+          {Array.from({length: 8}).map((_, index) => (
+            <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4" key={index}>
               <div className="flex items-center gap-3 justify-between">
                 <div className="flex items-center lg:gap-5 gap-3">
                   <div className="flex justify-center items-center lg:items-end flex-col">
@@ -914,16 +917,18 @@ export default function Groups() {
                   </Avatar>
                 </div>
                 <div
-                  className={` font-bold ${index !== 1 ? "text-red-600" : "text-green-600"
-                    }`}
+                  className={` font-bold ${
+                    index !== 1 ? "text-red-600" : "text-green-600"
+                  }`}
                 >
                   300 USDC
                 </div>
               </div>
 
               <div
-                className={` ${index === 7 ? "bg-white" : "bg-gray-200"
-                  } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
+                className={` ${
+                  index === 7 ? "bg-white" : "bg-gray-200"
+                } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
               />
             </div>
           ))}
@@ -953,8 +958,11 @@ export default function Groups() {
               </TooltipProvider>
             </div>
           </div>
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3">
+          {Array.from({length: 4}).map((_, index) => (
+            <div
+              className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3"
+              key={index}
+            >
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14">
                   <AvatarImage src="/man.png" />
