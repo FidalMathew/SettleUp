@@ -127,6 +127,8 @@ export default function Dashboard() {
     getContractInstance,
     gaslessTransaction,
     groups,
+    totalCredit,
+    totalDebt,
   } = useContractFunctionContextHook();
 
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
@@ -507,7 +509,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-[#3D405B]">5000 USDC</p>
+            <p className="text-3xl font-bold text-[#3D405B]">{totalDebt} USD</p>
           </CardContent>
           <CardFooter className="flex justify-between items-center">
             <div className="flex">
@@ -543,7 +545,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-[#3D405B]">5000 USDC</p>
+            <p className="text-3xl font-bold text-[#3D405B]">{totalCredit} USD</p>
           </CardContent>
           <CardFooter className="flex justify-between items-center">
             <div className="flex">
@@ -587,7 +589,7 @@ export default function Dashboard() {
           className="w-full p-6"
         >
           <CarouselContent className="">
-            {Array.from({ length: 5 }).map((_, index) => (
+            {groups?.map((group, index) => (
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                 <div className="p-1">
                   <Card className="h-fit">
@@ -600,7 +602,7 @@ export default function Dashboard() {
                           </Avatar>
                           <div className="flex flex-col justify-start">
                             <p className="text-sm lg:text-md font-semibold">
-                              Trip to Bangalore
+                              {group.groupName}
                             </p>
                             <p className="text-[10px] lg:text-xs">
                               24 Jan 2024 - 28 Jan 2024
@@ -657,7 +659,7 @@ export default function Dashboard() {
                         <Button
                           size="sm"
                           variant={"outline"}
-                          onClick={() => router.push(`/group/123`)}
+                          onClick={() => router.push(`/group/${group.groupNumber}`)}
                         >
                           View Group
                         </Button>
