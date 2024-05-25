@@ -4,13 +4,7 @@ import {Input} from "../ui/input";
 import {Label} from "../ui/label";
 import {PreviewComponent} from "searchpal";
 
-interface AddMembersProps {
-  name?: string;
-  email?: string;
-  phone?: string;
-  walletAddress?: string;
-}
-const AddMembers = ({name, email, phone, walletAddress}: AddMembersProps) => {
+const AddMembers = ({datastring}: {datastring: string}) => {
   return (
     <div>
       <p className="text-lg font-semibold text-center">Add Members</p>

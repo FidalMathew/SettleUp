@@ -22,15 +22,17 @@ interface DatePickerWithRangeProps {
   className?: string;
 
   formik?: FormikProps<MyFormValues>;
+  defaultValue?: DateRange;
 }
 
 export const DatePickerWithRange: FC<DatePickerWithRangeProps> = ({
   className,
   formik,
+  defaultValue,
 }) => {
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(),
+    from: defaultValue ? defaultValue.from : new Date(),
+    to: defaultValue ? defaultValue.to : new Date(),
   });
 
   useEffect(() => {

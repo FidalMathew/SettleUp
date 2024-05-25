@@ -152,11 +152,11 @@ export default function Groups() {
     }
   }, [equalSplit]);
 
-  console.log(amount, "amountRemaining");
-  console.log(numberOfChecked, "numberOfChecked");
-  console.log(numberOfUnequallyChecked, "numberOfUnequallyChecked");
-  console.log(unequallySplitArray, "unequallySplitArray");
-  console.log(splitArray, "splitArray");
+  // console.log(amount, "amountRemaining");
+  // console.log(numberOfChecked, "numberOfChecked");
+  // console.log(numberOfUnequallyChecked, "numberOfUnequallyChecked");
+  // console.log(unequallySplitArray, "unequallySplitArray");
+  // console.log(splitArray, "splitArray");
 
   const groupId = router.query.id;
   console.log(groupId, "groupId");
@@ -615,7 +615,9 @@ export default function Groups() {
                           </div>
                           <div className="flex flex-col gap-3 border p-2 h-[250px] overflow-y-auto expense-box placeholder pb-[33px]">
                             {MembersArray.map((_: any, index: number) => (
-                              <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50">
+                              <div className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50"
+                                key={index}
+                              >
                                 <div className="flex gap-3 items-center">
                                   <Checkbox
                                     id={`unequallySplitArray${index}`}
@@ -950,7 +952,7 @@ export default function Groups() {
             </Button>
           </div>
           {Array.from({ length: 8 }).map((_, index) => (
-            <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4">
+            <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4" key={index}>
               <div className="flex items-center gap-3 justify-between">
                 <div className="flex items-center lg:gap-5 gap-3">
                   <div className="flex justify-center items-center lg:items-end flex-col">
@@ -1029,7 +1031,9 @@ export default function Groups() {
             </div>
           </div>
           {MembersArray.map((member: any, index: number) => (
-            <div className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3">
+            <div className="flex gap-3 items-center justify-between ml-3 -translate-y-4 px-3"
+              key={index}
+            >
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14">
                   <AvatarImage src="/man.png" />

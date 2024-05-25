@@ -26,7 +26,7 @@ import {Button} from "../ui/button";
 import {useState} from "react";
 import {Label} from "../ui/label";
 import {Avatar, AvatarFallback, AvatarImage} from "../ui/avatar";
-export default function AddExpense() {
+export default function AddExpense({datastring}: {datastring: string}) {
   const [date, setDate] = useState<Date>();
   return (
     <div className="w-full">
