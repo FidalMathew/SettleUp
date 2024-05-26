@@ -1,7 +1,7 @@
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {CalendarIcon, Plus, Sparkles} from "lucide-react";
+import {CalendarIcon, Loader2, Plus, Sparkles} from "lucide-react";
 import {useRouter} from "next/router";
 import {
   Tooltip,
@@ -48,6 +48,7 @@ import {Field, Form, Formik} from "formik";
 import {emoji} from "@/lib/emoji";
 import {useContractFunctionContextHook} from "@/Context/ContractContext";
 import moment from "moment";
+import {toast} from "sonner";
 
 interface SplitArray {
   name: string;
@@ -74,6 +75,10 @@ export default function Groups() {
   const [date, setDate] = useState<Date>();
   const [openAIBox, setOpenAIBox] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
+
+  // loading states
+  const [gaslessTransactionLoading, setGaslessTransactionLoading] =
+    useState(false);
 
   const [amount, setAmount] = useState(0);
   const [splitArray, setSplitArray] = useState([] as SplitArray[]);
@@ -216,58 +221,71 @@ export default function Groups() {
   const handleAddGroupMember = async (values: any) => {
     if (!gaslessTransaction) return console.log("gaslessTransaction not found");
 
-    const res = gaslessTransaction("addMember", [groupId, values.wallet]);
+    const res = await gaslessTransaction("addMember", [groupId, values.wallet]);
     console.log(res, "res");
   };
 
   const handleAddExpense = async (values: any) => {
-    if (!gaslessTransaction) return console.log("gaslessTransaction not found");
-    console.log(values, "values- expense");
+    setGaslessTransactionLoading(true);
+    try {
+      if (!gaslessTransaction)
+        return console.log("gaslessTransaction not found");
+      console.log(values, "values- expense");
 
-    const creditor = values.paidBy;
-    let debtors: string[] = [];
-    let amountsArray: number[] = [];
-    if (values.equalSplit && fetchAddress) {
-      const fetchPromises = values.splitArray.map(async (item: any) => {
-        const address = await fetchAddress(item.name);
-        debtors.push(address);
-        amountsArray.push(item.amount);
-      });
-
-      // Wait for all promises to resolve
-      await Promise.all(fetchPromises);
-    } else if (!values.equalSplit && fetchAddress) {
-      const fetchPromises = values.unequallySplitArray.map(
-        async (item: any) => {
+      const creditor = values.paidBy;
+      let debtors: string[] = [];
+      let amountsArray: number[] = [];
+      if (values.equalSplit && fetchAddress) {
+        const fetchPromises = values.splitArray.map(async (item: any) => {
           const address = await fetchAddress(item.name);
           debtors.push(address);
           amountsArray.push(item.amount);
-        }
-      );
+        });
 
-      // Wait for all promises to resolve
-      await Promise.all(fetchPromises);
-    }
+        // Wait for all promises to resolve
+        await Promise.all(fetchPromises);
+      } else if (!values.equalSplit && fetchAddress) {
+        const fetchPromises = values.unequallySplitArray.map(
+          async (item: any) => {
+            const address = await fetchAddress(item.name);
+            debtors.push(address);
+            amountsArray.push(item.amount);
+          }
+        );
 
-    console.log(debtors, "debtors");
-    console.log(amountsArray, "debtors amountsArray");
+        // Wait for all promises to resolve
+        await Promise.all(fetchPromises);
+      }
 
-    if (values.equalSplit && debtors.length > 0 && amountsArray.length > 0) {
-      const res = gaslessTransaction("addExpense", [
-        groupId,
-        creditor,
-        debtors,
-        amountsArray,
-      ]);
-      console.log(res, "res");
-    } else {
-      const res = gaslessTransaction("addExpense", [
-        groupId,
-        creditor,
-        debtors,
-        amountsArray,
-      ]);
-      console.log(res, "res");
+      console.log(debtors, "debtors");
+      console.log(amountsArray, "debtors amountsArray");
+
+      if (values.equalSplit && debtors.length > 0 && amountsArray.length > 0) {
+        const res = await gaslessTransaction("addExpense", [
+          groupId,
+          creditor,
+          debtors,
+          amountsArray,
+          values.amount,
+        ]);
+        console.log(res, "res");
+        toast("Expense added successfully");
+      } else {
+        const res = await gaslessTransaction("addExpense", [
+          groupId,
+          creditor,
+          debtors,
+          amountsArray,
+          values.amount,
+        ]);
+        console.log(res, "res");
+        toast("Expense added successfully");
+      }
+    } catch (err: any) {
+      toast(err.message);
+      console.log(err, "err");
+    } finally {
+      setGaslessTransactionLoading(false);
     }
   };
 
@@ -764,17 +782,24 @@ export default function Groups() {
                         </TabsContent>
                       </Tabs>
 
-                      <Button
-                        className="bg-[#81B29A] hover:bg-[#81B29A] mt-5 w-full"
-                        type="submit"
-                        disabled={
-                          formik.values.equalSplit
-                            ? numberOfChecked === 0
-                            : amountRemaining !== 0
-                        }
-                      >
-                        Submit Expense
-                      </Button>
+                      {gaslessTransactionLoading ? (
+                        <Button disabled>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Please wait
+                        </Button>
+                      ) : (
+                        <Button
+                          className="bg-[#81B29A] hover:bg-[#81B29A] mt-5 w-full"
+                          type="submit"
+                          disabled={
+                            formik.values.equalSplit
+                              ? numberOfChecked === 0
+                              : amountRemaining !== 0
+                          }
+                        >
+                          Submit Expense
+                        </Button>
+                      )}
                     </div>
                   </Form>
                 )}
@@ -892,6 +917,19 @@ export default function Groups() {
                         />
                       </div>
                     </div>
+                    {gaslessTransactionLoading ? (
+                      <Button disabled>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Please wait
+                      </Button>
+                    ) : (
+                      <Button
+                        className="bg-[#81B29A] hover:bg-[#81B29A] w-full mt-4"
+                        type="submit"
+                      >
+                        Add Member
+                      </Button>
+                    )}
                     <Button
                       className="bg-[#81B29A] hover:bg-[#81B29A] w-full mt-4"
                       type="submit"
