@@ -1,16 +1,16 @@
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {CalendarIcon, Plus, Sparkles} from "lucide-react";
-import {useRouter} from "next/router";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarIcon, Plus, Sparkles } from "lucide-react";
+import { useRouter } from "next/router";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {useEffect, useState} from "react";
-import {Input} from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
@@ -19,7 +19,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import {Label} from "@/components/ui/label";
+import { Label } from "@/components/ui/label";
 import {
   Carousel,
   CarouselContent,
@@ -27,12 +27,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import {Checkbox} from "@/components/ui/checkbox";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {cn} from "@/lib/utils";
-import {format, set} from "date-fns";
-import {Calendar} from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format, set } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -42,11 +42,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {Badge} from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
-import {Field, Form, Formik} from "formik";
-import {emoji} from "@/lib/emoji";
-import {useContractFunctionContextHook} from "@/Context/ContractContext";
+import { Field, Form, Formik } from "formik";
+import { emoji } from "@/lib/emoji";
+import { useContractFunctionContextHook } from "@/Context/ContractContext";
 import moment from "moment";
 
 interface SplitArray {
@@ -67,6 +67,7 @@ export default function Groups() {
     fetchName,
     fetchAddress,
     getGroupSpending,
+    viewAllExpensesOfGroup
   } = useContractFunctionContextHook();
 
   const [addExpenseBox, setAddExpenseBox] = useState(false);
@@ -87,9 +88,20 @@ export default function Groups() {
 
   // const MembersArray = [{ name: "Manvik" }, { name: "Jaydeep" }, { name: "Fidal" }];
   const [MembersArray, setMembersArray] = useState<any>([]);
+  const [groupExpenses, setGroupExpenses] = useState<any>([]);
+
+  const [nameAddressMap, setNameAddressMap] = useState(new Map());
+
+  const addOrUpdateNameAddress = (name, address) => {
+    setNameAddressMap(prevMap => {
+      const newMap = new Map(prevMap);
+      newMap.set(address, name);
+      return newMap;
+    });
+  };
 
   useEffect(() => {
-    const newArray = Array.from({length: MembersArray.length}).map(
+    const newArray = Array.from({ length: MembersArray.length }).map(
       (_, index) => {
         return {
           name: MembersArray[index].name,
@@ -189,7 +201,8 @@ export default function Groups() {
           if (res !== undefined) {
             const namePromises = res.map(async (address) => {
               const name = await fetchName(address);
-              return {name: name === undefined ? "no-name" : name, address};
+              addOrUpdateNameAddress(name, address);
+              return { name: name === undefined ? "no-name" : name, address };
             });
 
             temp = await Promise.all(namePromises);
@@ -206,9 +219,13 @@ export default function Groups() {
       if (getGroupSpending) {
         const spending = await getGroupSpending(Number(groupId));
         console.log(spending, "spending");
-        if (typeof spending === "number") {
-          setGroupSpending(spending);
-        }
+        setGroupSpending(Number(spending));
+      }
+
+      if (viewAllExpensesOfGroup) {
+        const expenses = await viewAllExpensesOfGroup(Number(groupId));
+        console.log(expenses, "expenses");
+        setGroupExpenses(expenses);
       }
     })();
   }, [groupId, groups]);
@@ -612,7 +629,7 @@ export default function Groups() {
                                       <div className="flex flex-col items-center gap-2">
                                         <p>{item.name}</p>
                                         {splitArray[index] &&
-                                        splitArray[index].isChecked ? (
+                                          splitArray[index].isChecked ? (
                                           <p className="text-xs">
                                             {(amount / numberOfChecked).toFixed(
                                               2
@@ -695,7 +712,7 @@ export default function Groups() {
                                       if (!checked) {
                                         setAmountRemaining(
                                           amountRemaining +
-                                            unequallySplitArray[index].amount
+                                          unequallySplitArray[index].amount
                                         );
 
                                         // reset the input field to 0, when you check it back after uncheck the input should be 0, then we can modifiy the amount
@@ -741,10 +758,10 @@ export default function Groups() {
 
                                     setAmountRemaining(
                                       amount -
-                                        unequallySplitArray.reduce(
-                                          (acc, item) => acc + item.amount,
-                                          0
-                                        )
+                                      unequallySplitArray.reduce(
+                                        (acc, item) => acc + item.amount,
+                                        0
+                                      )
                                     );
                                     formik.setFieldValue(
                                       `unequallySplitArray[${index}].amount`,
@@ -911,7 +928,7 @@ export default function Groups() {
           src="/cover.png"
           alt="cover"
           className="object-cover h-full w-full"
-          style={{objectPosition: "center 30%"}}
+          style={{ objectPosition: "center 30%" }}
         />
       </div>
 
@@ -1002,7 +1019,7 @@ export default function Groups() {
               <Plus className="mr-2 h-4 w-4" /> Add Expense
             </Button>
           </div>
-          {Array.from({length: 8}).map((_, index) => (
+          {groupExpenses && groupExpenses.map((expense: any, index: number) => (
             <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4" key={index}>
               <div className="flex items-center gap-3 justify-between">
                 <div className="flex items-center lg:gap-5 gap-3">
@@ -1020,7 +1037,7 @@ export default function Groups() {
                         Resort Booking
                       </p>
                       <p className="text-xs">
-                        Paid by {index === 1 ? "You" : "Manvik"}
+                        Paid by  {nameAddressMap.get(expense.creditor)}
                       </p>
                       {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
                     </div>
@@ -1032,6 +1049,7 @@ export default function Groups() {
                     <AvatarImage src="/man.png" />
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
+
                   <Avatar className="h-8 w-8 -ml-4">
                     <AvatarImage src="/woman.png" />
                     <AvatarFallback>JD</AvatarFallback>
@@ -1042,18 +1060,16 @@ export default function Groups() {
                   </Avatar>
                 </div>
                 <div
-                  className={` font-bold ${
-                    index !== 1 ? "text-red-600" : "text-green-600"
-                  }`}
+                  className={` font-bold ${index !== 1 ? "text-red-600" : "text-green-600"
+                    }`}
                 >
-                  300 USDC
+                  {Number(expense.total)} USD
                 </div>
               </div>
 
               <div
-                className={` ${
-                  index === 7 ? "bg-white" : "bg-gray-200"
-                } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
+                className={` ${index === 7 ? "bg-white" : "bg-gray-200"
+                  } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
               />
             </div>
           ))}
