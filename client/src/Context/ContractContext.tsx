@@ -15,11 +15,12 @@ import { gaslessABI } from "@/lib/abi/gaslessABI";
 import { getContract } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { ethers } from "ethers";
+import { toast } from "sonner";
 
 interface ContractFunctionContextProps {
   getContractInstance?: () => void;
   performBatchTransaction?: () => void;
-  gaslessTransaction?: (functionName: string, args: any) => void;
+  gaslessTransaction?: (functionName: string, args: any) => Promise<void>;
   groups?: any[];
   totalCredit?: number;
   totalDebt?: number;
@@ -32,13 +33,13 @@ interface ContractFunctionContextProps {
   payDebt?: (groupId: number, creditor: string, token: number) => void;
   getAmountRemainingToBePaid?: (account: string, groupId: number) => void;
   getAmountRemainingToBeReceived?: (account: string, groupId: number) => void;
-  gaslessTransactionLoading?: boolean;
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
   getContractInstance: () => { },
   performBatchTransaction: () => { },
-  gaslessTransaction: (functionName: string, args: any) => { },
+  gaslessTransaction: (functionName: string, args: any) =>
+    new Promise(() => { }),
   groups: [],
   totalCredit: 0,
   totalDebt: 0,
@@ -51,7 +52,6 @@ const ContractFunctionContext = createContext<ContractFunctionContextProps>({
   payDebt: (groupId: number, creditor: string, token: number) => { },
   getAmountRemainingToBePaid: (account: string, groupId: number) => { },
   getAmountRemainingToBeReceived: (account: string, groupId: number) => { },
-  gaslessTransactionLoading: false,
 });
 
 export default function ContractFunctionContextProvider({
@@ -124,143 +124,142 @@ export default function ContractFunctionContextProvider({
     console.log(batchAll, "batchAll");
   };
 
-  const [gaslessTransactionLoading, setGaslessTransactionLoading] =
-    useState(false);
-
   const gaslessTransaction = async (functionName: string, args: any) => {
-    const PKey: string = process.env.NEXT_PUBLIC_PRIVATE_KEY || "";
-    console.log(PKey, "PKey");
-    const account = privateKeyToAccount(`0x${PKey}`);
-    console.log(account, "account");
+    try {
+      const PKey: string = process.env.NEXT_PUBLIC_PRIVATE_KEY || "";
+      console.log(PKey, "PKey");
+      const account = privateKeyToAccount(`0x${PKey}`);
+      console.log(account, "account");
 
-    const types = {
-      CallPermit: [
-        { name: "from", type: "address" },
-        { name: "to", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "data", type: "bytes" },
-        { name: "gaslimit", type: "uint64" },
-        { name: "nonce", type: "uint256" },
-        { name: "deadline", type: "uint256" },
-      ],
-    };
+      const types = {
+        CallPermit: [
+          { name: "from", type: "address" },
+          { name: "to", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "data", type: "bytes" },
+          { name: "gaslimit", type: "uint64" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ],
+      };
 
-    const callData = encodeFunctionData({
-      abi: settleUpABI,
-      functionName: functionName,
-      args: args,
-    });
+      const callData = encodeFunctionData({
+        abi: settleUpABI,
+        functionName: functionName,
+        args: args,
+      });
 
-    const publicClient = createPublicClient({
-      chain: moonbaseAlpha,
-      transport: custom(provider!),
-    });
+      const publicClient = createPublicClient({
+        chain: moonbaseAlpha,
+        transport: custom(provider!),
+      });
 
-    const gasEstimate = await publicClient.estimateGas({
-      account: wallets[0].address as `0x${string}`,
-      to: CONTRACT_ADDRESS,
-      data: callData,
-    });
+      const gasEstimate = await publicClient.estimateGas({
+        account: wallets[0].address as `0x${string}`,
+        to: CONTRACT_ADDRESS,
+        data: callData,
+      });
 
-    console.log(gasEstimate, "estimate gas");
+      console.log(gasEstimate, "estimate gas");
 
-    const privateWalletClient = createWalletClient({
-      account: account.address as `0x${string}`,
-      chain: moonbaseAlpha,
-      transport: http("https://moonbase-alpha.public.blastapi.io"),
-    });
+      const privateWalletClient = createWalletClient({
+        account: account.address as `0x${string}`,
+        chain: moonbaseAlpha,
+        transport: http("https://moonbase-alpha.public.blastapi.io"),
+      });
 
-    console.log(privateWalletClient, "privateWalletClient");
+      console.log(privateWalletClient, "privateWalletClient");
 
-    const userWalletClient = createWalletClient({
-      account: wallets[0].address as `0x${string}`,
-      chain: moonbaseAlpha,
-      transport: custom(provider!),
-    });
+      const userWalletClient = createWalletClient({
+        account: wallets[0].address as `0x${string}`,
+        chain: moonbaseAlpha,
+        transport: custom(provider!),
+      });
 
-    const gaslessContractPermit = getContract({
-      address: "0x000000000000000000000000000000000000080a",
-      abi: gaslessABI,
-      client: privateWalletClient,
-    });
+      const gaslessContractPermit = getContract({
+        address: "0x000000000000000000000000000000000000080a",
+        abi: gaslessABI,
+        client: privateWalletClient,
+      });
 
-    console.log(gaslessContractPermit, "gaslessContractPermit");
+      console.log(gaslessContractPermit, "gaslessContractPermit");
 
-    const providerRPC = {
-      moonbeam: {
-        name: "moonbeam",
-        rpc: "https://moonbase-alpha.public.blastapi.io", // Insert your RPC URL here
-        chainId: 1287, // 0x504 in hex,
-      },
-    };
-    const providerEthers = new ethers.JsonRpcProvider(
-      providerRPC.moonbeam.rpc,
-      {
-        chainId: providerRPC.moonbeam.chainId,
-        name: providerRPC.moonbeam.name,
-      }
-    );
+      const providerRPC = {
+        moonbeam: {
+          name: "moonbeam",
+          rpc: "https://moonbase-alpha.public.blastapi.io", // Insert your RPC URL here
+          chainId: 1287, // 0x504 in hex,
+        },
+      };
+      const providerEthers = new ethers.JsonRpcProvider(
+        providerRPC.moonbeam.rpc,
+        {
+          chainId: providerRPC.moonbeam.chainId,
+          name: providerRPC.moonbeam.name,
+        }
+      );
 
-    const thirdPartyGasSigner = new ethers.Wallet(PKey, providerEthers); // manager-voter
+      const thirdPartyGasSigner = new ethers.Wallet(PKey, providerEthers); // manager-voter
 
-    const callPermit = new ethers.Contract(
-      "0x000000000000000000000000000000000000080a", // Call Permit contract
-      gaslessABI,
-      thirdPartyGasSigner
-    );
+      const callPermit = new ethers.Contract(
+        "0x000000000000000000000000000000000000080a", // Call Permit contract
+        gaslessABI,
+        thirdPartyGasSigner
+      );
 
-    const nonce = await callPermit.nonces(wallets[0].address);
-    console.log("nonce", nonce, BigInt(nonce));
+      const nonce = await callPermit.nonces(wallets[0].address);
+      console.log("nonce", nonce, BigInt(nonce));
 
-    const message = {
-      from: wallets[0].address,
-      to: CONTRACT_ADDRESS, // Cartographer V1 contract
-      value: 0,
-      data: callData,
-      gaslimit: BigInt(gasEstimate) + BigInt(50000),
-      nonce: BigInt(nonce),
-      deadline: "1714762357000", // Randomly created deadline in the future
-    };
+      const message = {
+        from: wallets[0].address,
+        to: CONTRACT_ADDRESS, // Cartographer V1 contract
+        value: 0,
+        data: callData,
+        gaslimit: BigInt(gasEstimate) + BigInt(50000),
+        nonce: BigInt(nonce),
+        deadline: "1714762357000", // Randomly created deadline in the future
+      };
 
-    console.log("userWAllet Client", userWalletClient);
+      console.log("userWAllet Client", userWalletClient);
 
-    const domain = {
-      name: "Call Permit Precompile",
-      version: "1",
-      chainId: 1287,
-      verifyingContract:
-        "0x000000000000000000000000000000000000080a" as `0x${string}`,
-    };
+      const domain = {
+        name: "Call Permit Precompile",
+        version: "1",
+        chainId: 1287,
+        verifyingContract:
+          "0x000000000000000000000000000000000000080a" as `0x${string}`,
+      };
 
-    const signature = await userWalletClient.signTypedData({
-      domain,
-      types,
-      primaryType: "CallPermit",
-      message,
-    });
-    console.log(`Signature hash: ${signature}`);
+      const signature = await userWalletClient.signTypedData({
+        domain,
+        types,
+        primaryType: "CallPermit",
+        message,
+      });
+      console.log(`Signature hash: ${signature}`);
 
-    const formattedSignature = ethers.Signature.from(signature);
+      const formattedSignature = ethers.Signature.from(signature);
 
-    console.log("formattedSignature", callPermit);
+      console.log("formattedSignature", callPermit);
 
-    // This gets dispatched using the dApps signer
-    const dispatch = await callPermit.dispatch(
-      message.from,
-      message.to,
-      message.value,
-      message.data,
-      message.gaslimit,
-      message.deadline,
-      formattedSignature.v,
-      formattedSignature.r,
-      formattedSignature.s
-    );
+      // This gets dispatched using the dApps signer
+      const dispatch = await callPermit.dispatch(
+        message.from,
+        message.to,
+        message.value,
+        message.data,
+        message.gaslimit,
+        message.deadline,
+        formattedSignature.v,
+        formattedSignature.r,
+        formattedSignature.s
+      );
 
-    setGaslessTransactionLoading(true);
-    await dispatch.wait();
-    setGaslessTransactionLoading(false);
-    console.log(`Transaction hash: ${dispatch.hash}`);
+      await dispatch.wait();
+      console.log(`Transaction hash: ${dispatch.hash}`);
+    } catch (err: any) {
+      toast(err.message);
+    }
   };
 
   const [groups, setGroups] = useState<any[]>([]);
@@ -418,10 +417,19 @@ export default function ContractFunctionContextProvider({
     console.log(amount, "amount");
   };
 
+  const [createUserLoading, setCreateUserLoading] = useState(false);
+
   const createUser = async (name: string) => {
-    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
-    const createUser = await contract?.write.createUser([name]);
-    console.log(createUser, "createUser");
+    setCreateUserLoading(true); // Set loading to true when function starts
+    try {
+      const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+      const createUserResponse = await contract?.write.createUser([name]);
+      console.log(createUserResponse, "createUser");
+    } catch (error) {
+      console.error("Error creating user:", error);
+    } finally {
+      setCreateUserLoading(false); // Set loading to false when function ends
+    }
   };
 
   useEffect(() => {
@@ -448,7 +456,6 @@ export default function ContractFunctionContextProvider({
         payDebt,
         getAmountRemainingToBePaid,
         getAmountRemainingToBeReceived,
-        gaslessTransactionLoading,
         viewAllExpensesOfGroup,
 
       }}

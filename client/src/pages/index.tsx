@@ -43,10 +43,20 @@ export default function Home() {
   }, [wallets, fetchName]);
 
   useEffect(() => {
-    if (!name && ready && requiredWallet && wallets[0] && wallets[0].address) {
-      setOpenNameModal(true);
-    }
-  }, [name]);
+    const timer = setTimeout(() => {
+      if (
+        !name &&
+        ready &&
+        requiredWallet &&
+        wallets[0] &&
+        wallets[0].address
+      ) {
+        setOpenNameModal(true);
+      }
+    }, 3000); // 10000 milliseconds = 10 seconds
+
+    return () => clearTimeout(timer);
+  }, [name, ready, requiredWallet, wallets]);
 
   const create_user = async ({name}: {name: string}) => {
     if (gaslessTransaction) {
