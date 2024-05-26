@@ -1,16 +1,16 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, Loader2, Plus, Sparkles } from "lucide-react";
-import { useRouter } from "next/router";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {CalendarIcon, HandCoins, Loader2, Plus, Sparkles} from "lucide-react";
+import {useRouter} from "next/router";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
+import {useEffect, useMemo, useState} from "react";
+import {Input} from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
@@ -19,7 +19,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import { Label } from "@/components/ui/label";
+import {Label} from "@/components/ui/label";
 import {
   Carousel,
   CarouselContent,
@@ -27,12 +27,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format, set } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {cn} from "@/lib/utils";
+import {format, set} from "date-fns";
+import {Calendar} from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -42,13 +42,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import SearchBox from "@/components/AIComponents/SearchBox";
-import { Field, Form, Formik } from "formik";
-import { emoji } from "@/lib/emoji";
-import { useContractFunctionContextHook } from "@/Context/ContractContext";
+import {Field, Form, Formik} from "formik";
+import {emoji} from "@/lib/emoji";
+import {useContractFunctionContextHook} from "@/Context/ContractContext";
 import moment from "moment";
-import { toast } from "sonner";
+import {toast} from "sonner";
 
 interface SplitArray {
   name: string;
@@ -68,19 +67,23 @@ export default function Groups() {
     fetchName,
     fetchAddress,
     getGroupSpending,
-    viewAllExpensesOfGroup
+    viewAllExpensesOfGroup,
+    LinkTokenPrice,
   } = useContractFunctionContextHook();
 
+  // modal states
   const [addExpenseBox, setAddExpenseBox] = useState(false);
   const [addMemberBox, setAddMemberBox] = useState(false);
   const [date, setDate] = useState<Date>();
   const [openAIBox, setOpenAIBox] = useState(false);
+  const [openPayAllBox, setOpenPayAllBox] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
   // loading states
   const [gaslessTransactionLoading, setGaslessTransactionLoading] =
     useState(false);
 
+  // global form states
   const [amount, setAmount] = useState(0);
   const [splitArray, setSplitArray] = useState([] as SplitArray[]);
   const [numberOfChecked, setNumberOfChecked] = useState(0);
@@ -90,15 +93,12 @@ export default function Groups() {
   );
   const [amountRemaining, setAmountRemaining] = useState(amount);
   const [equalSplit, setEqualSplit] = useState(true);
-
-  // const MembersArray = [{ name: "Manvik" }, { name: "Jaydeep" }, { name: "Fidal" }];
   const [MembersArray, setMembersArray] = useState<any>([]);
   const [groupExpenses, setGroupExpenses] = useState<any>([]);
-
   const [nameAddressMap, setNameAddressMap] = useState(new Map());
 
   const addOrUpdateNameAddress = (name: string, address: string) => {
-    setNameAddressMap(prevMap => {
+    setNameAddressMap((prevMap) => {
       const newMap = new Map(prevMap);
       newMap.set(address, name);
       return newMap;
@@ -106,7 +106,7 @@ export default function Groups() {
   };
 
   useEffect(() => {
-    const newArray = Array.from({ length: MembersArray.length }).map(
+    const newArray = Array.from({length: MembersArray.length}).map(
       (_, index) => {
         return {
           name: MembersArray[index].name,
@@ -129,6 +129,30 @@ export default function Groups() {
 
     setSplitArray(newArrayUnequallySplit);
   }, [MembersArray]);
+
+  const MembersArray1 = useMemo(
+    () => [
+      {name: "Manvik", due: 200},
+      {name: "Jaydeep", due: 300},
+      {name: "Fidal", due: 500},
+    ],
+    []
+  );
+
+  const [membersDuesArray, setMembersDuesArray] = useState<any>([]);
+  const [dueRemaining, setDueRemaining] = useState(1000);
+
+  useEffect(() => {
+    const newMembersDueArray = MembersArray1.map((item: any) => {
+      return {
+        name: item.name,
+        amount: item.due,
+        isChecked: false,
+      };
+    });
+
+    setMembersDuesArray(newMembersDueArray);
+  }, [MembersArray1]);
 
   useEffect(() => {
     const checked = splitArray.filter((item) => item.isChecked);
@@ -207,7 +231,7 @@ export default function Groups() {
             const namePromises = res.map(async (address) => {
               const name = await fetchName(address);
               addOrUpdateNameAddress(name, address);
-              return { name: name === undefined ? "no-name" : name, address };
+              return {name: name === undefined ? "no-name" : name, address};
             });
 
             temp = await Promise.all(namePromises);
@@ -305,6 +329,41 @@ export default function Groups() {
       setGaslessTransactionLoading(false);
     }
   };
+
+  const [batchingLoading, setBatchingLoading] = useState(false);
+
+  const tokenPrices = useMemo(
+    () => [
+      {
+        name: "LINK",
+        price: LinkTokenPrice,
+      },
+      {
+        name: "USDC",
+        price: 1,
+      },
+    ],
+    [LinkTokenPrice]
+  );
+
+  const [tokenPricesArray, setTokenPricesArray] = useState<any>([]);
+
+  useEffect(() => {
+    const newTokenPriceArray = tokenPrices.map((item) => {
+      if (item.name === "LINK") {
+        return {
+          ...item,
+          isChecked: true,
+        };
+      }
+      return {
+        ...item,
+        isChecked: false,
+      };
+    });
+
+    setTokenPricesArray(newTokenPriceArray);
+  }, [tokenPrices]);
 
   return (
     <div className="h-screen w-full">
@@ -647,7 +706,7 @@ export default function Groups() {
                                       <div className="flex flex-col items-center gap-2">
                                         <p>{item.name}</p>
                                         {splitArray[index] &&
-                                          splitArray[index].isChecked ? (
+                                        splitArray[index].isChecked ? (
                                           <p className="text-xs">
                                             {(amount / numberOfChecked).toFixed(
                                               2
@@ -730,7 +789,7 @@ export default function Groups() {
                                       if (!checked) {
                                         setAmountRemaining(
                                           amountRemaining +
-                                          unequallySplitArray[index].amount
+                                            unequallySplitArray[index].amount
                                         );
 
                                         // reset the input field to 0, when you check it back after uncheck the input should be 0, then we can modifiy the amount
@@ -776,10 +835,10 @@ export default function Groups() {
 
                                     setAmountRemaining(
                                       amount -
-                                      unequallySplitArray.reduce(
-                                        (acc, item) => acc + item.amount,
-                                        0
-                                      )
+                                        unequallySplitArray.reduce(
+                                          (acc, item) => acc + item.amount,
+                                          0
+                                        )
                                     );
                                     formik.setFieldValue(
                                       `unequallySplitArray[${index}].amount`,
@@ -947,15 +1006,224 @@ export default function Groups() {
                         Add Member
                       </Button>
                     )}
-                    <Button
-                      className="bg-[#81B29A] hover:bg-[#81B29A] w-full mt-4"
-                      type="submit"
-                    >
-                      Add Member
-                    </Button>
                   </Form>
                 )}
               </Formik>
+            </ResponsiveDialogComponentDescription>
+          </ResponsiveDialogComponentHeader>
+        </ResponsiveDialogComponentContent>
+      </ResponsiveDialogComponent>
+
+      <ResponsiveDialogComponent
+        open={openPayAllBox}
+        onOpenChange={setOpenPayAllBox}
+      >
+        <ResponsiveDialogComponentContent>
+          <ResponsiveDialogComponentHeader>
+            <ResponsiveDialogComponentTitle>
+              Clear Dues
+            </ResponsiveDialogComponentTitle>
+            <ResponsiveDialogComponentDescription className="pt-6">
+              {batchingLoading ? (
+                <div className="flex items-center justify-center flex-col mb-5">
+                  <img src="/batching.gif" alt="loader" className="h-32 w-32" />
+                  <p className="text-lg font-semibold text-center">
+                    Processing Payment
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-8">
+                  <div>
+                    <Formik
+                      initialValues={{
+                        amount: dueRemaining,
+                        membersDuesArray: membersDuesArray,
+                        token: "LINK",
+                      }}
+                      onSubmit={(values, _) => console.log(values, "fucku1")}
+                    >
+                      {(formik) => (
+                        <Form className="flex flex-col gap-5 mb-1">
+                          <div className="flex items-center justify-center flex-col gap-2">
+                            <p className="">Total Due</p>
+                            <p className="text-3xl text-[#c34e4c] font-semibold">
+                              {dueRemaining} USD
+                            </p>
+                          </div>
+                          <p className="ml-2">Select Token</p>
+
+                          <Carousel
+                            opts={{
+                              align: "start",
+                            }}
+                            className="w-full"
+                          >
+                            <CarouselContent className="w-full">
+                              {tokenPricesArray &&
+                                tokenPrices.length > 0 &&
+                                tokenPrices.map((item: any, index: number) => (
+                                  <CarouselItem
+                                    className="basis-1/3"
+                                    key={index}
+                                  >
+                                    <div className="flex flex-col gap-1">
+                                      <Checkbox
+                                        className="peer sr-only"
+                                        id={`tokenPricesArray${index + 1}`}
+                                        name={`tokenPricesArray[${index}].isChecked`}
+                                        checked={
+                                          tokenPricesArray[index] &&
+                                          tokenPricesArray[index].isChecked
+                                        }
+                                        onCheckedChange={(checked: boolean) => {
+                                          setTokenPricesArray((prev: any) => {
+                                            //  when one token is checked from the list, then uncheck the rest of the tokens
+                                            console.log(item.name, "item.name");
+                                            const newArray = prev.map(
+                                              (item: any, i: number) => {
+                                                if (index === i) {
+                                                  return {
+                                                    ...item,
+                                                    isChecked: checked,
+                                                  };
+                                                } else {
+                                                  return {
+                                                    ...item,
+                                                    isChecked: false,
+                                                  };
+                                                }
+                                              }
+                                            );
+                                            return newArray;
+                                          });
+
+                                          formik.setFieldValue(
+                                            "token",
+                                            item.name
+                                          );
+                                        }}
+                                      />
+                                      <Label
+                                        htmlFor={`tokenPricesArray${index + 1}`}
+                                        className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
+                                      >
+                                        <img
+                                          src={`/${item.name.toLowerCase()}.png`}
+                                          alt="usdc"
+                                          className="mb-3 h-8  w-8 "
+                                        />
+                                        <div className="flex flex-col items-center gap-2">
+                                          <p>{item.name.toUpperCase()}</p>
+                                          <p>
+                                            {parseFloat(
+                                              (
+                                                dueRemaining / item.price
+                                              ).toFixed(2)
+                                            )}{" "}
+                                            {item.name.toUpperCase()}
+                                          </p>
+                                        </div>
+                                      </Label>
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                          </Carousel>
+
+                          <p className="ml-2">Select Users to Pay</p>
+                          <div className="flex flex-col gap-4">
+                            <Carousel
+                              opts={{
+                                align: "start",
+                              }}
+                              className="w-full"
+                            >
+                              <CarouselContent className="w-full">
+                                {membersDuesArray &&
+                                  membersDuesArray.length > 0 &&
+                                  membersDuesArray.map(
+                                    (item: any, index: number) => (
+                                      <CarouselItem
+                                        className="basis-1/3"
+                                        key={index}
+                                      >
+                                        <div className="flex flex-col gap-1">
+                                          <Checkbox
+                                            className="peer sr-only"
+                                            id={`membersDuesArray${index + 1}`}
+                                            checked={
+                                              membersDuesArray[index] &&
+                                              membersDuesArray[index].isChecked
+                                            }
+                                            name={`membersDuesArray[${index}].isChecked`}
+                                            onCheckedChange={(
+                                              checked: boolean
+                                            ) => {
+                                              setMembersDuesArray(
+                                                (prev: any) => {
+                                                  const newArray = [...prev];
+                                                  newArray[index].isChecked =
+                                                    checked;
+
+                                                  // substract the dueRemaining amount with the value which is checked
+
+                                                  if (checked) {
+                                                    setDueRemaining(
+                                                      dueRemaining -
+                                                        newArray[index].amount
+                                                    );
+                                                  }
+
+                                                  if (!checked) {
+                                                    setDueRemaining(
+                                                      dueRemaining +
+                                                        newArray[index].amount
+                                                    );
+                                                  }
+                                                  formik.setFieldValue(
+                                                    "membersDuesArray",
+                                                    newArray
+                                                  );
+                                                  return newArray;
+                                                }
+                                              );
+                                            }}
+                                          />
+                                          <Label
+                                            htmlFor={`membersDuesArray${
+                                              index + 1
+                                            }`}
+                                            className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
+                                          >
+                                            <img
+                                              src="/man.png"
+                                              alt="man"
+                                              className="mb-3 h-8  w-8 "
+                                            />
+                                            <div className="flex flex-col items-center gap-2">
+                                              <p>{item.name}</p>
+                                              <p>{item.amount} USD</p>
+                                            </div>
+                                          </Label>
+                                        </div>
+                                      </CarouselItem>
+                                    )
+                                  )}
+                              </CarouselContent>
+                            </Carousel>
+                          </div>
+                          <Button
+                            className="bg-[#81B29A] hover:bg-[#81B29A] w-full"
+                            type="submit"
+                          >
+                            Pay All
+                          </Button>
+                        </Form>
+                      )}
+                    </Formik>
+                  </div>
+                </div>
+              )}
             </ResponsiveDialogComponentDescription>
           </ResponsiveDialogComponentHeader>
         </ResponsiveDialogComponentContent>
@@ -966,7 +1234,7 @@ export default function Groups() {
           src="/cover.png"
           alt="cover"
           className="object-cover h-full w-full"
-          style={{ objectPosition: "center 30%" }}
+          style={{objectPosition: "center 30%"}}
         />
       </div>
 
@@ -1011,12 +1279,19 @@ export default function Groups() {
           {/* <div className="w-12 h-12 rounded-full border-2 grid place-content-center">
             <UserRoundPlus className="text-[#3D405B]" />
           </div> */}
-
           <Button
             variant={"outline"}
             onClick={() => setOpenAIBox((prev: boolean) => !prev)}
           >
             <Sparkles className="mr-2 h-4 w-4" /> Ask AI
+          </Button>
+
+          <Button
+            variant={"default"}
+            className="bg-[#81B29A] hover:bg-[#81B29A]"
+            onClick={() => setOpenPayAllBox((prev: boolean) => !prev)}
+          >
+            <HandCoins className="mr-2 h-4 w-4" /> Pay All
           </Button>
         </div>
       </div>
@@ -1057,60 +1332,63 @@ export default function Groups() {
               <Plus className="mr-2 h-4 w-4" /> Add Expense
             </Button>
           </div>
-          {groupExpenses && groupExpenses.map((expense: any, index: number) => (
-            <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4" key={index}>
-              <div className="flex items-center gap-3 justify-between">
-                <div className="flex items-center lg:gap-5 gap-3">
-                  <div className="flex justify-center items-center lg:items-end flex-col">
-                    <p className="lg:text-lg font-semibold">24 Jan</p>
-                    <p className="text-xs">12:00pm</p>
-                  </div>
-                  <div className="flex gap-3 items-center translate-y-1">
-                    <Avatar className="lg:h-14 lg:w-14 -ml-4 first:ml-0">
-                      <AvatarImage src="/travel.png" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <p className="text-sm lg:text-lg font-semibold">
-                        Resort Booking
-                      </p>
-                      <p className="text-xs">
-                        Paid by  {nameAddressMap.get(expense.creditor)}
-                      </p>
-                      {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
+          {groupExpenses &&
+            groupExpenses.map((expense: any, index: number) => (
+              <div className="lg:pt-1 pl-6 lg:px-8 bg-white pr-4" key={index}>
+                <div className="flex items-center gap-3 justify-between">
+                  <div className="flex items-center lg:gap-5 gap-3">
+                    <div className="flex justify-center items-center lg:items-end flex-col">
+                      <p className="lg:text-lg font-semibold">24 Jan</p>
+                      <p className="text-xs">12:00pm</p>
+                    </div>
+                    <div className="flex gap-3 items-center translate-y-1">
+                      <Avatar className="lg:h-14 lg:w-14 -ml-4 first:ml-0">
+                        <AvatarImage src="/travel.png" />
+                        <AvatarFallback>JD</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <p className="text-sm lg:text-lg font-semibold">
+                          Resort Booking
+                        </p>
+                        <p className="text-xs">
+                          Paid by {nameAddressMap.get(expense.creditor)}
+                        </p>
+                        {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex ml-6 items-center">
-                  <Avatar className="h-8 w-8 -ml-4 first:ml-0">
-                    <AvatarImage src="/man.png" />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
+                  <div className="flex ml-6 items-center">
+                    <Avatar className="h-8 w-8 -ml-4 first:ml-0">
+                      <AvatarImage src="/man.png" />
+                      <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
 
-                  <Avatar className="h-8 w-8 -ml-4">
-                    <AvatarImage src="/woman.png" />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="h-8 w-8 -ml-4">
-                    <AvatarImage src="/woman1.png" />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                </div>
-                <div
-                  className={` font-bold ${index !== 1 ? "text-red-600" : "text-green-600"
+                    <Avatar className="h-8 w-8 -ml-4">
+                      <AvatarImage src="/woman.png" />
+                      <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
+                    <Avatar className="h-8 w-8 -ml-4">
+                      <AvatarImage src="/woman1.png" />
+                      <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div
+                    className={` font-bold ${
+                      index !== 1 ? "text-red-600" : "text-green-600"
                     }`}
-                >
-                  {Number(expense.total)} USD
+                  >
+                    {Number(expense.total)} USD
+                  </div>
                 </div>
-              </div>
 
-              <div
-                className={` ${index === 7 ? "bg-white" : "bg-gray-200"
+                <div
+                  className={` ${
+                    index === 7 ? "bg-white" : "bg-gray-200"
                   } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
-              />
-            </div>
-          ))}
+                />
+              </div>
+            ))}
         </div>
         <div className="h-[500px] overflow-y-auto border my-8 rounded-lg lg:w-[30%] w-full bg-white flex flex-col expense-box gap-10 relative">
           <div className="p-4 border-b font-semibold text-xl sticky top-0 bg-white z-[20] flex justify-between items-center">
