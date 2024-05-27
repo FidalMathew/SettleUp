@@ -1,16 +1,16 @@
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {CalendarIcon, HandCoins, Loader2, Plus, Sparkles} from "lucide-react";
-import {useRouter} from "next/router";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarIcon, HandCoins, Loader2, Plus, Sparkles } from "lucide-react";
+import { useRouter } from "next/router";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {useEffect, useMemo, useState} from "react";
-import {Input} from "@/components/ui/input";
+import { useEffect, useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
@@ -19,7 +19,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import {Label} from "@/components/ui/label";
+import { Label } from "@/components/ui/label";
 import {
   Carousel,
   CarouselContent,
@@ -27,12 +27,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import {Checkbox} from "@/components/ui/checkbox";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {cn} from "@/lib/utils";
-import {format, set} from "date-fns";
-import {Calendar} from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format, set } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -43,11 +43,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SearchBox from "@/components/AIComponents/SearchBox";
-import {Field, Form, Formik} from "formik";
-import {emoji} from "@/lib/emoji";
-import {useContractFunctionContextHook} from "@/Context/ContractContext";
+import { Field, Form, Formik } from "formik";
+import { emoji } from "@/lib/emoji";
+import { useContractFunctionContextHook } from "@/Context/ContractContext";
 import moment from "moment";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
 interface SplitArray {
   name: string;
@@ -69,6 +69,9 @@ export default function Groups() {
     getGroupSpending,
     viewAllExpensesOfGroup,
     LinkTokenPrice,
+    getAllDebts,
+    getAllDebtsOfMember,
+    createCallData
   } = useContractFunctionContextHook();
 
   // modal states
@@ -106,7 +109,7 @@ export default function Groups() {
   };
 
   useEffect(() => {
-    const newArray = Array.from({length: MembersArray.length}).map(
+    const newArray = Array.from({ length: MembersArray.length }).map(
       (_, index) => {
         return {
           name: MembersArray[index].name,
@@ -132,15 +135,15 @@ export default function Groups() {
 
   const MembersArray1 = useMemo(
     () => [
-      {name: "Manvik", due: 200},
-      {name: "Jaydeep", due: 300},
-      {name: "Fidal", due: 500},
+      { name: "Manvik", due: 200 },
+      { name: "Jaydeep", due: 300 },
+      { name: "Fidal", due: 500 },
     ],
     []
   );
 
   const [membersDuesArray, setMembersDuesArray] = useState<any>([]);
-  const [dueRemaining, setDueRemaining] = useState(1000);
+  const [dueRemaining, setDueRemaining] = useState(0);
 
   useEffect(() => {
     const newMembersDueArray = MembersArray1.map((item: any) => {
@@ -204,8 +207,10 @@ export default function Groups() {
   console.log(groupId, "groupId");
 
   const [groupDetails, setGroupDetails] = useState<any>(null);
+  const [groupDebtMap, setGroupDebtMap] = useState(new Map());
 
   const [groupSpending, setGroupSpending] = useState<number>(0);
+
   useEffect(() => {
     if (groupId && groups) {
       console.log(groups, "groups dsa");
@@ -231,7 +236,7 @@ export default function Groups() {
             const namePromises = res.map(async (address) => {
               const name = await fetchName(address);
               addOrUpdateNameAddress(name, address);
-              return {name: name === undefined ? "no-name" : name, address};
+              return { name: name === undefined ? "no-name" : name, address };
             });
 
             temp = await Promise.all(namePromises);
@@ -255,6 +260,24 @@ export default function Groups() {
         const expenses = await viewAllExpensesOfGroup(Number(groupId));
         console.log(expenses, "expenses");
         setGroupExpenses(expenses);
+      }
+
+      if (getAllDebtsOfMember) {
+        const debts = await getAllDebtsOfMember(Number(groupId));
+        console.log(debts, "debts of member");
+
+        let totalDue = 0;
+        const newMembersDueArray = (debts as unknown as any[])?.map((item: any) => {
+          totalDue += item.amount;
+          return {
+            name: item.name,
+            amount: item.amount,
+            isChecked: false,
+          };
+        });
+
+        setDueRemaining(totalDue);
+        setMembersDuesArray(debts);
       }
     })();
   }, [groupId, groups]);
@@ -308,6 +331,9 @@ export default function Groups() {
           debtors,
           amountsArray,
           values.amount,
+          values.description,
+          values.date.toString(),
+          values.category,
         ]);
         console.log(res, "res");
         toast("Expense added successfully");
@@ -318,6 +344,9 @@ export default function Groups() {
           debtors,
           amountsArray,
           values.amount,
+          values.description,
+          values.date.toString(),
+          values.category,
         ]);
         console.log(res, "res");
         toast("Expense added successfully");
@@ -364,6 +393,36 @@ export default function Groups() {
 
     setTokenPricesArray(newTokenPriceArray);
   }, [tokenPrices]);
+
+  const handlePayDue = async (values: any) => {
+
+    let tokenValue = 0;
+
+    let callDataArray: any = []
+    console.log(values, "values -- batch");
+
+    if (createCallData && performBatchTransaction) {
+
+      const arr = values.membersDuesArray.map(async (item: any) => {
+        const callData = await createCallData("payDebt", [groupId, item.address, tokenValue]);
+        console.log(callData, "callData-pay");
+        return callData;
+      });
+
+      const resolvedCallDataArray = await Promise.all(arr);
+
+      resolvedCallDataArray.forEach(callData => {
+        callDataArray.push(callData);
+      });
+
+      console.log(callDataArray, "callDataArray----");
+
+      const res = performBatchTransaction("LINK", callDataArray);
+      console.log(res, "res");
+
+    }
+
+  }
 
   return (
     <div className="h-screen w-full">
@@ -706,7 +765,7 @@ export default function Groups() {
                                       <div className="flex flex-col items-center gap-2">
                                         <p>{item.name}</p>
                                         {splitArray[index] &&
-                                        splitArray[index].isChecked ? (
+                                          splitArray[index].isChecked ? (
                                           <p className="text-xs">
                                             {(amount / numberOfChecked).toFixed(
                                               2
@@ -789,7 +848,7 @@ export default function Groups() {
                                       if (!checked) {
                                         setAmountRemaining(
                                           amountRemaining +
-                                            unequallySplitArray[index].amount
+                                          unequallySplitArray[index].amount
                                         );
 
                                         // reset the input field to 0, when you check it back after uncheck the input should be 0, then we can modifiy the amount
@@ -835,10 +894,10 @@ export default function Groups() {
 
                                     setAmountRemaining(
                                       amount -
-                                        unequallySplitArray.reduce(
-                                          (acc, item) => acc + item.amount,
-                                          0
-                                        )
+                                      unequallySplitArray.reduce(
+                                        (acc, item) => acc + item.amount,
+                                        0
+                                      )
                                     );
                                     formik.setFieldValue(
                                       `unequallySplitArray[${index}].amount`,
@@ -1040,7 +1099,7 @@ export default function Groups() {
                         membersDuesArray: membersDuesArray,
                         token: "LINK",
                       }}
-                      onSubmit={(values, _) => console.log(values, "fucku1")}
+                      onSubmit={(values, _) => handlePayDue(values)}
                     >
                       {(formik) => (
                         <Form className="flex flex-col gap-5 mb-1">
@@ -1170,14 +1229,14 @@ export default function Groups() {
                                                   if (checked) {
                                                     setDueRemaining(
                                                       dueRemaining -
-                                                        newArray[index].amount
+                                                      newArray[index].amount
                                                     );
                                                   }
 
                                                   if (!checked) {
                                                     setDueRemaining(
                                                       dueRemaining +
-                                                        newArray[index].amount
+                                                      newArray[index].amount
                                                     );
                                                   }
                                                   formik.setFieldValue(
@@ -1190,9 +1249,8 @@ export default function Groups() {
                                             }}
                                           />
                                           <Label
-                                            htmlFor={`membersDuesArray${
-                                              index + 1
-                                            }`}
+                                            htmlFor={`membersDuesArray${index + 1
+                                              }`}
                                             className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                                           >
                                             <img
@@ -1234,7 +1292,7 @@ export default function Groups() {
           src="/cover.png"
           alt="cover"
           className="object-cover h-full w-full"
-          style={{objectPosition: "center 30%"}}
+          style={{ objectPosition: "center 30%" }}
         />
       </div>
 
@@ -1374,18 +1432,16 @@ export default function Groups() {
                     </Avatar>
                   </div>
                   <div
-                    className={` font-bold ${
-                      index !== 1 ? "text-red-600" : "text-green-600"
-                    }`}
+                    className={` font-bold ${index !== 1 ? "text-red-600" : "text-green-600"
+                      }`}
                   >
                     {Number(expense.total)} USD
                   </div>
                 </div>
 
                 <div
-                  className={` ${
-                    index === 7 ? "bg-white" : "bg-gray-200"
-                  } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
+                  className={` ${index === 7 ? "bg-white" : "bg-gray-200"
+                    } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
                 />
               </div>
             ))}

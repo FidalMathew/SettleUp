@@ -1,5 +1,5 @@
-import {EIP1193Provider, useWallets} from "@privy-io/react-auth";
-import {createContext, ReactNode, useContext, useEffect, useState} from "react";
+import { EIP1193Provider, useWallets } from "@privy-io/react-auth";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import {
   createPublicClient,
   createWalletClient,
@@ -8,20 +8,19 @@ import {
   http,
   WalletClient,
 } from "viem";
-import {moonbaseAlpha} from "viem/chains";
-import {settleUpABI} from "@/lib/abi/settleUpAbi";
-import {batchABI} from "@/lib/abi/batchABI";
-import {gaslessABI} from "@/lib/abi/gaslessABI";
-import {tokenABI} from "@/lib/abi/tokenAbi";
-import {getContract} from "viem";
-import {privateKeyToAccount} from "viem/accounts";
-import {ethers} from "ethers";
-import {toast} from "sonner";
+import { moonbaseAlpha } from "viem/chains";
+import { settleUpABI } from "@/lib/abi/settleUpAbi";
+import { batchABI } from "@/lib/abi/batchABI";
+import { gaslessABI } from "@/lib/abi/gaslessABI";
+import { tokenABI } from "@/lib/abi/tokenAbi";
+import { getContract } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { ethers } from "ethers";
+import { toast } from "sonner";
 import axios from "axios";
 
 interface ContractFunctionContextProps {
   getContractInstance?: () => void;
-  performBatchTransaction?: () => void;
   gaslessTransaction?: (functionName: string, args: any) => Promise<void>;
   groups?: any[];
   totalCredit?: number;
@@ -36,26 +35,33 @@ interface ContractFunctionContextProps {
   getAmountRemainingToBePaid?: (account: string, groupId: number) => void;
   getAmountRemainingToBeReceived?: (account: string, groupId: number) => void;
   LinkTokenPrice?: number;
+  getAllDebts?: (groupId: number) => void;
+  getAllDebtsOfMember?: (groupId: number) => void;
+  createCallData?: (functionName: string, args: any) => Promise<string>;
+  performBatchTransaction?: (token: string, callDataArray: any) => void;
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
-  getContractInstance: () => {},
-  performBatchTransaction: () => {},
+  getContractInstance: () => { },
   gaslessTransaction: (functionName: string, args: any) =>
-    new Promise(() => {}),
+    new Promise(() => { }),
   groups: [],
   totalCredit: 0,
   totalDebt: 0,
-  fetchName: (address: string) => new Promise(() => {}),
-  fetchAddress: (name: string) => new Promise(() => {}),
-  getGroupMembers: (groupId: number) => new Promise(() => {}),
-  viewAllExpensesOfGroup: (groupId: number) => new Promise(() => {}),
-  getGroupSpending: (groupId: number) => {},
-  getDebt: (groupId: number, debtor: string, creditor: string) => {},
-  payDebt: (groupId: number, creditor: string, token: number) => {},
-  getAmountRemainingToBePaid: (account: string, groupId: number) => {},
-  getAmountRemainingToBeReceived: (account: string, groupId: number) => {},
+  fetchName: (address: string) => new Promise(() => { }),
+  fetchAddress: (name: string) => new Promise(() => { }),
+  getGroupMembers: (groupId: number) => new Promise(() => { }),
+  viewAllExpensesOfGroup: (groupId: number) => new Promise(() => { }),
+  getGroupSpending: (groupId: number) => { },
+  getDebt: (groupId: number, debtor: string, creditor: string) => { },
+  payDebt: (groupId: number, creditor: string, token: number) => { },
+  getAmountRemainingToBePaid: (account: string, groupId: number) => { },
+  getAmountRemainingToBeReceived: (account: string, groupId: number) => { },
   LinkTokenPrice: 0,
+  getAllDebts: (groupId: number) => { },
+  getAllDebtsOfMember: (groupId: number) => { },
+  createCallData: (functionName: string, args: any) => new Promise(() => { }),
+  performBatchTransaction: (token: string, callDataArray: any) => { },
 });
 
 export default function ContractFunctionContextProvider({
@@ -63,8 +69,8 @@ export default function ContractFunctionContextProvider({
 }: {
   children: ReactNode;
 }) {
-  const CONTRACT_ADDRESS = "0xF73972ACe5Bd3A9363Bc1F12052f18fAeF26139B";
-  const {wallets} = useWallets();
+  const CONTRACT_ADDRESS = "0x9807E44E9dAE29e536D21a0173936C57741c12cd";
+  const { wallets } = useWallets();
   const [provider, setProvider] = useState<EIP1193Provider>();
 
   useEffect(() => {
@@ -98,7 +104,7 @@ export default function ContractFunctionContextProvider({
         // 1a. Insert a single client
         // client: publicClient,
         // 1b. Or public and/or wallet clients
-        client: {public: publicClient, wallet: walletClient},
+        client: { public: publicClient, wallet: walletClient },
       });
 
       console.log(contract, "contract instance");
@@ -106,23 +112,65 @@ export default function ContractFunctionContextProvider({
     }
   };
 
-  const performBatchTransaction = async () => {
-    const createGroupCalldata = encodeFunctionData({
+  const createCallData = async (functionName: string, args: any) => {
+
+    const data = encodeFunctionData({
       abi: settleUpABI,
-      functionName: "createGroup",
-      args: ["VIT"],
+      functionName: functionName,
+      args: args,
     });
+    return data
+  }
+
+  const performBatchTransaction = async (token: string, callDataArray: any) => {
+
+    console.log(callDataArray, "callDataArray", token, "token");
+    // const createGroupCalldata = encodeFunctionData({
+    //   abi: settleUpABI,
+    //   functionName: "createGroup",
+    //   args: ["VIT"],
+    // });
+
+    console.log(callDataArray, "callDataArray");
+
+    const LINKAddress = '0x0F5CC78D949c3cD5B6264A9Fb1a423A6075bf68A'
+    let contractAddressArray: string[] = []
+    if (token === "LINK") {
+      contractAddressArray.push("0x0F5CC78D949c3cD5B6264A9Fb1a423A6075bf68A")
+    }
+
+    for (let i = 0; i < callDataArray.length; i++) {
+      contractAddressArray.push(CONTRACT_ADDRESS)
+    }
+
+    const allowanceCallData = encodeFunctionData({
+      abi: tokenABI,
+      functionName: "approve",
+      args: [CONTRACT_ADDRESS, "30000000000000000000"],
+    });
+
+    const transCallData = encodeFunctionData({
+      abi: settleUpABI,
+      functionName: "payDebt",
+      args: [1, '0x45B5175beB39B86609c9e0e7E5A7E5B0f1d65115', 0],
+    });
+
+    console.log(callDataArray, "pre callDataArray");
+
+    callDataArray = [allowanceCallData, ...callDataArray]
+    console.log(callDataArray, "final callDataArray");
 
     const batchAddress = "0x0000000000000000000000000000000000000808";
 
-    console.log(createGroupCalldata, "createGroupCalldata");
+
+    console.log(contractAddressArray, callDataArray, contractAddressArray.length, callDataArray.length, "testing");
 
     const batchContract = await getContractInstance(batchAddress, batchABI);
     console.log(batchContract, "batchContract");
     const batchAll = await batchContract?.write.batchAll([
-      [CONTRACT_ADDRESS],
+      ["0x0F5CC78D949c3cD5B6264A9Fb1a423A6075bf68A", CONTRACT_ADDRESS], //contractAddressArray,
       [],
-      [createGroupCalldata],
+      callDataArray, // callDataArray,
       [],
     ]);
     console.log(batchAll, "batchAll");
@@ -137,13 +185,13 @@ export default function ContractFunctionContextProvider({
 
       const types = {
         CallPermit: [
-          {name: "from", type: "address"},
-          {name: "to", type: "address"},
-          {name: "value", type: "uint256"},
-          {name: "data", type: "bytes"},
-          {name: "gaslimit", type: "uint64"},
-          {name: "nonce", type: "uint256"},
-          {name: "deadline", type: "uint256"},
+          { name: "from", type: "address" },
+          { name: "to", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "data", type: "bytes" },
+          { name: "gaslimit", type: "uint64" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
         ],
       };
 
@@ -339,6 +387,37 @@ export default function ContractFunctionContextProvider({
     return debts;
   };
 
+  const getAllDebtsOfMember = async (groupId: number) => {
+
+    if (!wallets[0]) return;
+
+    const member = wallets[0].address as `0x${string}`;
+    const contract = await getContractInstance(CONTRACT_ADDRESS, settleUpABI);
+    if (!contract) return;
+
+    const debts = await contract.read.getAllDebts([groupId]);
+    console.log(debts, "debts");
+
+    if (!debts) return;
+
+    let memberDebts = [];
+
+    console.log("hello");
+    for (let i = 0; i < debts[0].length; i++) {
+
+      console.log(debts[0][i], member, "debtor");
+      if (debts[0][i] === member) {
+
+        let name = await fetchName(debts[1][i]);
+        memberDebts.push({ name: name, address: debts[1][i], amount: Number(debts[2][i]), isChecked: false });
+      }
+    }
+
+    console.log(memberDebts, "memberDebts");
+
+    return memberDebts;
+  }
+
   const [totalCredit, setTotalCredit] = useState<number>(0);
   const [totalDebt, setTotalDebt] = useState<number>(0);
 
@@ -452,7 +531,7 @@ export default function ContractFunctionContextProvider({
 
     async function tokenPrice() {
       try {
-        const {data} = await axios.get(
+        const { data } = await axios.get(
           `https://api.chainbase.online/v1/token/price?chain_id=${network_id}&contract_address=${token_addr}`,
           {
             headers: {
@@ -495,6 +574,9 @@ export default function ContractFunctionContextProvider({
         getAmountRemainingToBeReceived,
         viewAllExpensesOfGroup,
         LinkTokenPrice,
+        getAllDebts,
+        getAllDebtsOfMember,
+        createCallData
       }}
     >
       {children}
