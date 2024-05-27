@@ -100,8 +100,64 @@ export const settleUpABI = [
         name: "_name",
         type: "string",
       },
+      {
+        internalType: "string",
+        name: "_image",
+        type: "string",
+      },
     ],
     name: "createUser",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_groupId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "_creditor",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "token",
+        type: "uint256",
+      },
+    ],
+    name: "payDebt",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "creditor",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "usdAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "_link",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_priceFeed",
+        type: "address",
+      },
+    ],
+    name: "payInLink",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -134,6 +190,49 @@ export const settleUpABI = [
       },
     ],
     name: "fetchName",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "fetchNameTest",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "fetchUserAvatar",
     outputs: [
       {
         internalType: "string",
@@ -272,25 +371,6 @@ export const settleUpABI = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "groupId",
-        type: "uint256",
-      },
-    ],
-    name: "getGroupSpending",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
         name: "member",
         type: "address",
@@ -322,6 +402,25 @@ export const settleUpABI = [
         internalType: "string[]",
         name: "",
         type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "groupId",
+        type: "uint256",
+      },
+    ],
+    name: "getGroupSpending",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -415,57 +514,6 @@ export const settleUpABI = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_groupId",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "_creditor",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "token",
-        type: "uint256",
-      },
-    ],
-    name: "payDebt",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "creditor",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "usdAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "_link",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_priceFeed",
-        type: "address",
-      },
-    ],
-    name: "payInLink",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
