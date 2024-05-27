@@ -335,7 +335,8 @@ export default function ContractFunctionContextProvider({
     const groups: any = await contract?.read.getGroupsForMember([
       wallets[0].address as `0x${string}`,
     ]);
-    console.log(groups, "groups");
+
+    console.log(groups, "groups from context");
 
     const groupNumbers = groups[0] as any;
     const groupNames = groups[1] as any;

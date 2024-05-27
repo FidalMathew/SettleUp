@@ -965,8 +965,6 @@ export default function Groups() {
               <Formik
                 initialValues={{
                   name: "",
-                  wallet: "",
-                  avatarPath: "/user.png",
                 }}
                 onSubmit={(values, action) => {
                   // console.log(values);
@@ -976,52 +974,7 @@ export default function Groups() {
                 {(formik) => (
                   <Form>
                     <div className="w-full pt-6 flex items-center flex-col gap-4">
-                      <div>
-                        <ResponsiveDialogComponent
-                          open={openAvatarModal}
-                          onOpenChange={setOpenAvatarModal}
-                        >
-                          <ResponsiveDialogComponentContent>
-                            <ResponsiveDialogComponentHeader>
-                              <ResponsiveDialogComponentTitle>
-                                <p>Select an Emoji</p>
-                              </ResponsiveDialogComponentTitle>
-                              <ResponsiveDialogComponentDescription>
-                                <div className="grid grid-cols-3 grid-flow-row grid-rows-3 w-full place-items-center pt-5 gap-6">
-                                  {emoji.map((item, index) => (
-                                    <div
-                                      key={index}
-                                      className="border rounded-xl p-4 flex flex-col gap-2 aspect-square h-fit items-center cursor-pointer hover:bg-muted"
-                                    >
-                                      <img
-                                        src={item.imgpath}
-                                        alt={item.name}
-                                        className="h-16 w-16"
-                                        onClick={() => {
-                                          formik.setFieldValue(
-                                            "avatarPath",
-                                            item.imgpath
-                                          );
-                                          setOpenAvatarModal(false);
-                                        }}
-                                      />
-                                      {/* <p>Man</p> */}
-                                    </div>
-                                  ))}
-                                </div>
-                              </ResponsiveDialogComponentDescription>
-                            </ResponsiveDialogComponentHeader>
-                          </ResponsiveDialogComponentContent>
-                        </ResponsiveDialogComponent>
-
-                        <Avatar
-                          className="w-32 h-32 relative overflow-visible cursor-pointer"
-                          onClick={() => setOpenAvatarModal((prev) => !prev)}
-                        >
-                          <AvatarImage src={formik.values.avatarPath} />
-                          <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                      </div>
+                      <div></div>
                       <div className="flex flex-col w-full gap-2">
                         <Field
                           as={Input}
@@ -1029,15 +982,6 @@ export default function Groups() {
                           id="name"
                           type="text"
                           placeholder="Name"
-                          className="w-full focus-visible:ring-0"
-                        />
-
-                        <Field
-                          as={Input}
-                          name="wallet"
-                          id="wallet"
-                          type="text"
-                          placeholder="Wallet Address (0x..)"
                           className="w-full focus-visible:ring-0"
                         />
                       </div>

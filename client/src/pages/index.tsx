@@ -59,7 +59,8 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (
-        !name &&
+        name &&
+        name[0] === "" &&
         ready &&
         requiredWallet &&
         wallets[0] &&
@@ -208,7 +209,7 @@ export default function Home() {
 
       <div className="h-[80px] w-full flex items-center justify-between lg:gap-5 lg:pr-32 lg:pl-32 px-6">
         <img src="/logo.png" alt="logo" className="h-[60px]" />
-        {requiredWallet && ready && !name ? (
+        {requiredWallet && ready && name && name[0] === "" ? (
           <Button
             className="rounded-full border border-gray-400"
             variant={"outline"}
@@ -216,7 +217,7 @@ export default function Home() {
           >
             Set Name
           </Button>
-        ) : requiredWallet && ready && name ? (
+        ) : requiredWallet && ready && name && name[0] !== "" ? (
           <div>
             <Button
               className="rounded-full border border-gray-400"

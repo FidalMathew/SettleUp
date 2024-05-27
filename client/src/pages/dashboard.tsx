@@ -133,6 +133,7 @@ export default function Dashboard() {
     totalDebt,
     fetchName,
     fetchNameAndAvatar,
+    getGroupMembers,
   } = useContractFunctionContextHook();
 
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
@@ -192,10 +193,8 @@ export default function Dashboard() {
     }
   };
 
-  console.log(groups, "group");
-
   const [name, setName] = useState<string>("");
-  const [avatar, setAvatar] = useState<string>("");
+  const [avatar, setAvatar] = useState<any>();
 
   useEffect(() => {
     if (wallets[0] && wallets[0].address && fetchNameAndAvatar) {
@@ -206,6 +205,42 @@ export default function Dashboard() {
       })();
     }
   }, [wallets, fetchName]);
+
+  console.log(groups, "groupsInfofucku");
+
+  const fetchGroupMembers = async () => {
+    try {
+      let avatarsArray = [];
+      if (groups && getGroupMembers && fetchNameAndAvatar) {
+        const groupIds = groups.map((group: any) => group.groupNumber);
+
+        fetchNameAndAvatar;
+
+        const groupMembersPromises = groupIds.map(async (groupId) => {
+          const members = await getGroupMembers(groupId);
+          return members;
+        });
+
+        const groupMembersArrays = await Promise.all(groupMembersPromises);
+        for (const membersArray of groupMembersArrays) {
+          const avatarPromises = membersArray.map(async (member: any) => {
+            const [, avatarPath] = await fetchNameAndAvatar(member);
+            return avatarPath;
+          });
+
+          const avatars = await Promise.all(avatarPromises);
+          avatarsArray.push(avatars);
+        }
+      }
+
+      setAvatar(avatarsArray);
+      console.log(avatarsArray, "avatarsArray");
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    fetchGroupMembers();
+  }, []);
 
   return (
     <div className="h-fit w-full relative px-4 pt-8 md:px-14 flex flex-col gap-7 dashboard">
@@ -655,11 +690,13 @@ export default function Dashboard() {
                   >
                     <div className="p-1">
                       <Card className="h-fit">
-                        <CardHeader className="flex pt-4 pb-2 h-fit px-1 lg:px-4">
+                        <CardHeader className="flex pt-4 pb-2 px-4 h-fit lg:px-4">
                           <div className="h-[10%] flex items-center justify-between w-full">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-12 w-12 -ml-4 first:ml-0">
-                                <AvatarImage src="/trip.png" />
+                                <AvatarImage
+                                  src={`/${group.groupCategory}.png`}
+                                />
                                 <AvatarFallback>JD</AvatarFallback>
                               </Avatar>
                               <div className="flex flex-col justify-start">
@@ -683,7 +720,7 @@ export default function Dashboard() {
                             </div> */}
                           </div>
                         </CardHeader>
-                        <CardContent className="h-[110px] p-4 w-full mb-3">
+                        {/* <CardContent className="h-[110px] p-4 w-full mb-3">
                           <div className="flex justify-between items-center">
                             <div className="flex justify-start text-sm flex-col">
                               <p>Your Spending</p>
@@ -701,39 +738,47 @@ export default function Dashboard() {
                               indicatorColor="bg-orange-500"
                             />
                           </div>
-                        </CardContent>
-                        <Separator />
+                        </CardContent> */}
+                        {/* <Separator /> */}
 
-                        <CardFooter className="p-4 border-t border-slate-200">
-                          <div className="flex items-center justify-between w-full">
+                        <CardContent className="p-6 pb-3">
+                          {/* <CardContent className="p-4 border-t border-slate-200"> */}
+                          <div className="flex items-center justify-center w-full">
                             <div className="flex items-center gap-3">
                               <div className="flex">
-                                <Avatar className="h-8 w-8 -ml-4 first:ml-0">
-                                  <AvatarImage src="/man.png" />
-                                  <AvatarFallback>JD</AvatarFallback>
-                                </Avatar>
-                                <Avatar className="h-8 w-8 -ml-4">
-                                  <AvatarImage src="/woman.png" />
-                                  <AvatarFallback>JD</AvatarFallback>
-                                </Avatar>
-                                <Avatar className="h-8 w-8 -ml-4">
-                                  <AvatarImage src="/woman1.png" />
-                                  <AvatarFallback>JD</AvatarFallback>
-                                </Avatar>
+                                {avatar &&
+                                  avatar.length > 0 &&
+                                  avatar[index] &&
+                                  avatar[index].map((avatar: any) => (
+                                    <div>
+                                      <Avatar className="h-16 w-16 -ml-4 first:ml-0">
+                                        <AvatarImage src={`${avatar}`} />
+                                        <AvatarFallback>JD</AvatarFallback>
+                                      </Avatar>
+                                    </div>
+                                  ))}
                               </div>
-                              <p className="text-xs">4 Members</p>
                             </div>
-
-                            <Button
-                              size="sm"
-                              variant={"outline"}
-                              onClick={() =>
-                                router.push(`/group/${group.groupNumber}`)
-                              }
-                            >
-                              View Group
-                            </Button>
                           </div>
+                        </CardContent>
+
+                        <CardFooter className="p-4 flex items-centerr justify-between flex-row-reverse">
+                          <Button
+                            size="sm"
+                            variant={"outline"}
+                            onClick={() =>
+                              router.push(`/group/${group.groupNumber}`)
+                            }
+                          >
+                            View Group
+                          </Button>
+                          <p className="text-xs pr-3">
+                            {avatar &&
+                              avatar.length > 0 &&
+                              avatar[index] &&
+                              avatar[index].length}{" "}
+                            Members
+                          </p>
                         </CardFooter>
                       </Card>
                     </div>
@@ -746,7 +791,7 @@ export default function Dashboard() {
         )}
       </div>
       <Separator className="bg-red-400 text-red-400" />
-      <div>
+      {/* <div>
         <p className="font-semibold text-2xl">Expense History</p>
 
         <div className="flex justify-center items-center gap-5 flex-col lg:flex-row">
@@ -769,7 +814,6 @@ export default function Dashboard() {
                         <p className="text-xs">
                           Trip to Bangalore - Paid by Manvik
                         </p>
-                        {/* <p className="text-sm ">24 Jan 2024, 12:00 PM</p> */}
                       </div>
                     </div>
                   </div>
@@ -807,7 +851,6 @@ export default function Dashboard() {
                   bottom: 5,
                 }}
               >
-                {/* <CartesianGrid strokeDasharray="3 3" /> */}
                 <XAxis dataKey={"name"} />
                 <YAxis
                   label={{
@@ -818,7 +861,6 @@ export default function Dashboard() {
                   }}
                 />
                 <RechartToolTip />
-                {/* <Legend />   */}
                 <Bar dataKey="pv" stackId="a" fill="#E07A5F" />
                 <Bar dataKey="uv" stackId="a" fill="#82ca9d" />
                 <Bar dataKey="cv" stackId="a" fill="#ffc658" />
@@ -826,7 +868,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
