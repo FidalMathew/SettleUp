@@ -25,6 +25,7 @@ export default function App({Component, pageProps}: AppProps) {
         embeddedWallets: {
           createOnLogin: "off",
         },
+        defaultChain: moonbaseAlpha,
         supportedChains: [moonbaseAlpha],
       }}
       onSuccess={() => router.push("/dashboard")}

@@ -1,7 +1,7 @@
 import {Button} from "@/components/ui/button";
 import {useContractFunctionContextHook} from "@/Context/ContractContext";
 import {usePrivy, useWallets} from "@privy-io/react-auth";
-import {ArrowRight, Wallet} from "lucide-react";
+import {ArrowRight, Loader2, Wallet} from "lucide-react";
 import {useRouter} from "next/router";
 import {useEffect, useState} from "react";
 import {
@@ -15,11 +15,16 @@ import {
 import {Field, Form, Formik} from "formik";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
+import {toast} from "sonner";
+import {emoji} from "../lib/emoji";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 
 export default function Home() {
   const router = useRouter();
   const [openNameModal, setOpenNameModal] = useState(false);
   const [name, setName] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [openAvatarModal, setOpenAvatarModal] = useState(false);
 
   const {connectWallet} = usePrivy();
   const {wallets, ready} = useWallets();
@@ -30,17 +35,26 @@ export default function Home() {
 
   console.log(wallets, "reqdwallets");
 
-  const {fetchName, gaslessTransaction} = useContractFunctionContextHook();
+  const {fetchName, gaslessTransaction, fetchNameAndAvatar} =
+    useContractFunctionContextHook();
 
   useEffect(() => {
-    if (wallets[0] && wallets[0].address && fetchName) {
+    (async function () {
+      if (wallets && wallets[0] && wallets[0].chainId !== "1287") {
+        await wallets[0].switchChain(1287 as `0x${string}` | number);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (wallets[0] && wallets[0].address && fetchNameAndAvatar) {
       (async function () {
-        const fetchedName = await fetchName(wallets[0].address); // Await the fetchName function call
+        const fetchedName = await fetchNameAndAvatar(wallets[0].address); // Await the fetchName function call
         console.log(fetchedName, "namef");
         setName(fetchedName);
       })();
     }
-  }, [wallets, fetchName]);
+  }, [wallets, fetchName, loading]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,9 +72,24 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [name, ready, requiredWallet, wallets]);
 
-  const create_user = async ({name}: {name: string}) => {
-    if (gaslessTransaction) {
-      gaslessTransaction("createUser", [name]);
+  const create_user = async ({
+    name,
+    avatarPath,
+  }: {
+    name: string;
+    avatarPath: string;
+  }) => {
+    setLoading(true);
+    try {
+      if (gaslessTransaction) {
+        await gaslessTransaction("createUser", [name, avatarPath]);
+
+        toast("Name set successfully");
+      }
+    } catch (err) {
+      console.log(err, "create user error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,40 +106,98 @@ export default function Home() {
             </ResponsiveDialogComponentTitle>
             <ResponsiveDialogComponentDescription>
               <Formik
-                initialValues={{name: ""}}
+                initialValues={{
+                  name: "",
+                  avatarPath: "/user.png",
+                }}
                 onSubmit={(values) => {
                   create_user(values);
+                  // console.log(values, "values");
                 }}
               >
                 {(formik) => (
                   <Form className="flex flex-col gap-4 pt-7">
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="name" className="ml-1">
-                        Name
-                      </Label>
-                      <Field
-                        as={Input}
-                        name="name"
-                        placeholder="Enter your name"
-                        className="focus-visible:ring-0"
-                      />
+                    <ResponsiveDialogComponent
+                      open={openAvatarModal}
+                      onOpenChange={setOpenAvatarModal}
+                    >
+                      <ResponsiveDialogComponentContent>
+                        <ResponsiveDialogComponentHeader>
+                          <ResponsiveDialogComponentTitle>
+                            <p>Select an Emoji</p>
+                          </ResponsiveDialogComponentTitle>
+                          <ResponsiveDialogComponentDescription>
+                            <div className="grid grid-cols-3 grid-flow-row grid-rows-3 w-full place-items-center pt-5 gap-6">
+                              {emoji.map((item: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className="border rounded-xl p-4 flex flex-col gap-2 aspect-square h-fit items-center cursor-pointer hover:bg-muted"
+                                  onClick={() => {
+                                    formik.setFieldValue(
+                                      "avatarPath",
+                                      item.imgpath
+                                    );
+                                    setOpenAvatarModal(false);
+                                  }}
+                                >
+                                  <img
+                                    src={item.imgpath}
+                                    alt={item.name}
+                                    className="h-16 w-16"
+                                  />
+                                  {/* <p>Man</p> */}
+                                </div>
+                              ))}
+                            </div>
+                          </ResponsiveDialogComponentDescription>
+                        </ResponsiveDialogComponentHeader>
+                      </ResponsiveDialogComponentContent>
+                    </ResponsiveDialogComponent>
+                    <div className="w-full flex flex-col items-center gap-5">
+                      <Avatar
+                        className="w-32 h-32 relative overflow-visible cursor-pointer"
+                        onClick={() => setOpenAvatarModal((prev) => !prev)}
+                      >
+                        <AvatarImage src={formik.values.avatarPath} />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col gap-2 w-full">
+                        <Label htmlFor="name" className="ml-1">
+                          Name
+                        </Label>
+                        <Field
+                          as={Input}
+                          name="name"
+                          placeholder="Enter your name"
+                          className="focus-visible:ring-0"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2 w-full">
+                        <Label htmlFor="wallet" className="ml-1">
+                          Wallet Address
+                        </Label>
+                        <Input
+                          value={wallets[0] && wallets[0].address}
+                          disabled
+                          name="wallet"
+                          placeholder="Enter your name"
+                          className="focus-visible:ring-0"
+                        />
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Label htmlFor="wallet" className="ml-1">
-                        Wallet Address
-                      </Label>
-                      <Input
-                        value={wallets[0] && wallets[0].address}
+                    {loading ? (
+                      <Button
                         disabled
-                        name="wallet"
-                        placeholder="Enter your name"
-                        className="focus-visible:ring-0"
-                      />
-                    </div>
-
-                    <Button className="rounded-xl bg-[#F2CC8F] hover:bg-[#F2CC8F] text-slate-600 w-full">
-                      Set Name
-                    </Button>
+                        className="bg-[#efd2a3] hover:bg-[#efd2a3] text-slate-800 w-full"
+                      >
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Please wait
+                      </Button>
+                    ) : (
+                      <Button className="rounded-xl bg-[#F2CC8F] hover:bg-[#F2CC8F] text-slate-600 w-full">
+                        Set Name
+                      </Button>
+                    )}
                   </Form>
                 )}
               </Formik>

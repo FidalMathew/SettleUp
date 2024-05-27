@@ -10,6 +10,7 @@ import {
   ArrowRight,
   BadgePoundSterling,
   CircleDollarSign,
+  Loader2,
   Plus,
   SmilePlus,
   Wallet,
@@ -68,6 +69,7 @@ import axios from "axios";
 
 import {Formik, Form, Field} from "formik";
 import {useContractFunctionContextHook} from "@/Context/ContractContext";
+import moment from "moment";
 
 const data = [
   {
@@ -130,10 +132,14 @@ export default function Dashboard() {
     totalCredit,
     totalDebt,
     fetchName,
+    fetchNameAndAvatar,
   } = useContractFunctionContextHook();
 
   const [openGroupCreation, setOpenGroupCreation] = useState(false);
+  const [groupsInfo, setGroupsInfo] = useState<any[] | undefined>([]);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
   // const {ready, user, logout} = usePrivy();
   const {ready, wallets} = useWallets();
   useEffect(() => {
@@ -143,8 +149,9 @@ export default function Dashboard() {
   }, [wallets]);
 
   useEffect(() => {
-    console.log(groups, "groups---");
-  }, [groups]);
+    console.log(groups, "--groups--");
+    setGroupsInfo(groups);
+  }, [groups, loading]);
 
   function formatDate(dateString: string) {
     // Create a new Date object from the input string
@@ -162,23 +169,38 @@ export default function Dashboard() {
   }
 
   const handleCreateGroup = async (values: any) => {
-    const {groupName, dateRange, category} = values;
+    setLoading(true);
+    try {
+      const {groupName, dateRange, category} = values;
 
-    if (gaslessTransaction) {
-      const to = formatDate(dateRange.to);
-      const from = formatDate(dateRange.from ? dateRange.from : dateRange.to);
-      gaslessTransaction("createGroup", [groupName, category, from, to]);
+      if (gaslessTransaction) {
+        const to = formatDate(dateRange.to);
+        const from = formatDate(dateRange.from ? dateRange.from : dateRange.to);
+        await gaslessTransaction("createGroup", [
+          groupName,
+          category,
+          from,
+          to,
+        ]);
+
+        setOpenGroupCreation(false);
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   console.log(groups, "group");
 
   const [name, setName] = useState<string>("");
+  const [avatar, setAvatar] = useState<string>("");
 
   useEffect(() => {
-    if (wallets[0] && wallets[0].address && fetchName) {
+    if (wallets[0] && wallets[0].address && fetchNameAndAvatar) {
       (async function () {
-        const fetchedName = await fetchName(wallets[0].address);
+        const fetchedName = await fetchNameAndAvatar(wallets[0].address);
         console.log(fetchedName, "namef");
         setName(fetchedName);
       })();
@@ -441,12 +463,22 @@ export default function Dashboard() {
                       </Carousel>
                     </div>
 
-                    <Button
-                      className="bg-[#81B29A] hover:bg-[#81B29A] w-full"
-                      type="submit"
-                    >
-                      Create
-                    </Button>
+                    {loading ? (
+                      <Button
+                        disabled
+                        className="bg-[#88b59f] hover:bg-[#88b59f]"
+                      >
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Please wait
+                      </Button>
+                    ) : (
+                      <Button
+                        className="bg-[#81B29A] hover:bg-[#81B29A] w-full"
+                        type="submit"
+                      >
+                        Create
+                      </Button>
+                    )}
                   </Form>
                 )}
               </Formik>
@@ -458,11 +490,13 @@ export default function Dashboard() {
       <div className="h-fit mb-6 w-full flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Avatar className="h-14 w-14">
-            <AvatarImage src="/man.png" />
+            <AvatarImage src={name && name[1]} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <div className="flex flex-col justify-start text-[#3D405B]">
-            <p className="text-xl font-Poppins font-semibold">Hi {name}!</p>
+            <p className="text-xl font-Poppins font-semibold">
+              Hi {name && name[0]}!
+            </p>
             <p className="text-sm">Track your Group Expense</p>
           </div>
         </div>
@@ -613,8 +647,8 @@ export default function Dashboard() {
             className="w-full p-6"
           >
             <CarouselContent className="">
-              {groups &&
-                groups.map((group, index) => (
+              {groupsInfo &&
+                groupsInfo.map((group, index) => (
                   <CarouselItem
                     key={index}
                     className="md:basis-1/2 lg:basis-1/3"
@@ -633,14 +667,20 @@ export default function Dashboard() {
                                   {group.groupName}
                                 </p>
                                 <p className="text-[10px] lg:text-xs">
-                                  24 Jan 2024 - 28 Jan 2024
+                                  {moment(group.groupFrom, "D-M-YYYY").format(
+                                    "D MMM YYYY"
+                                  )}{" "}
+                                  -{" "}
+                                  {moment(group.groupTo, "D-M-YYYY").format(
+                                    "D MMM YYYY"
+                                  )}
                                 </p>
                               </div>
                             </div>
-                            <div className="flex gap-2 items-center">
+                            {/* <div className="flex gap-2 items-center">
                               <div className="rounded-full bg-yellow-500 h-2 w-2" />
                               <p className="text-xs">Unsettled Dues</p>
-                            </div>
+                            </div> */}
                           </div>
                         </CardHeader>
                         <CardContent className="h-[110px] p-4 w-full mb-3">

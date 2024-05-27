@@ -1,16 +1,16 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, HandCoins, Loader2, Plus, Sparkles } from "lucide-react";
-import { useRouter } from "next/router";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {CalendarIcon, HandCoins, Loader2, Plus, Sparkles} from "lucide-react";
+import {useRouter} from "next/router";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEffect, useMemo, useState } from "react";
-import { Input } from "@/components/ui/input";
+import {useEffect, useMemo, useState} from "react";
+import {Input} from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
   ResponsiveDialogComponentContent,
@@ -19,7 +19,7 @@ import {
   ResponsiveDialogComponentHeader,
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
-import { Label } from "@/components/ui/label";
+import {Label} from "@/components/ui/label";
 import {
   Carousel,
   CarouselContent,
@@ -27,12 +27,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format, set } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {cn} from "@/lib/utils";
+import {format, set} from "date-fns";
+import {Calendar} from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -43,11 +43,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SearchBox from "@/components/AIComponents/SearchBox";
-import { Field, Form, Formik } from "formik";
-import { emoji } from "@/lib/emoji";
-import { useContractFunctionContextHook } from "@/Context/ContractContext";
+import {Field, Form, Formik} from "formik";
+import {emoji} from "@/lib/emoji";
+import {useContractFunctionContextHook} from "@/Context/ContractContext";
 import moment from "moment";
-import { toast } from "sonner";
+import {toast} from "sonner";
 
 interface SplitArray {
   name: string;
@@ -71,7 +71,8 @@ export default function Groups() {
     LinkTokenPrice,
     getAllDebts,
     getAllDebtsOfMember,
-    createCallData
+    createCallData,
+    fetchNameAndAvatar,
   } = useContractFunctionContextHook();
 
   // modal states
@@ -109,7 +110,7 @@ export default function Groups() {
   };
 
   useEffect(() => {
-    const newArray = Array.from({ length: MembersArray.length }).map(
+    const newArray = Array.from({length: MembersArray.length}).map(
       (_, index) => {
         return {
           name: MembersArray[index].name,
@@ -135,9 +136,9 @@ export default function Groups() {
 
   const MembersArray1 = useMemo(
     () => [
-      { name: "Manvik", due: 200 },
-      { name: "Jaydeep", due: 300 },
-      { name: "Fidal", due: 500 },
+      {name: "Manvik", due: 200},
+      {name: "Jaydeep", due: 300},
+      {name: "Fidal", due: 500},
     ],
     []
   );
@@ -223,7 +224,7 @@ export default function Groups() {
       setGroupDetails(group);
     }
     (async () => {
-      if (groupId && getGroupMembers && fetchName) {
+      if (groupId && getGroupMembers && fetchNameAndAvatar && fetchName) {
         try {
           const res: string[] | undefined = await getGroupMembers(
             Number(groupId)
@@ -235,8 +236,14 @@ export default function Groups() {
           if (res !== undefined) {
             const namePromises = res.map(async (address) => {
               const name = await fetchName(address);
-              addOrUpdateNameAddress(name, address);
-              return { name: name === undefined ? "no-name" : name, address };
+              const arr = await fetchNameAndAvatar(address);
+              const avatarPath = arr[1];
+              addOrUpdateNameAddress(name && name[0], address);
+              return {
+                name: name === undefined ? "no-name" : name,
+                address,
+                avatarPath,
+              };
             });
 
             temp = await Promise.all(namePromises);
@@ -267,14 +274,16 @@ export default function Groups() {
         console.log(debts, "debts of member");
 
         let totalDue = 0;
-        const newMembersDueArray = (debts as unknown as any[])?.map((item: any) => {
-          totalDue += item.amount;
-          return {
-            name: item.name,
-            amount: item.amount,
-            isChecked: false,
-          };
-        });
+        const newMembersDueArray = (debts as unknown as any[])?.map(
+          (item: any) => {
+            totalDue += item.amount;
+            return {
+              name: item.name,
+              amount: item.amount,
+              isChecked: false,
+            };
+          }
+        );
 
         setDueRemaining(totalDue);
         setMembersDuesArray(debts);
@@ -395,23 +404,25 @@ export default function Groups() {
   }, [tokenPrices]);
 
   const handlePayDue = async (values: any) => {
-
     let tokenValue = 0;
 
-    let callDataArray: any = []
+    let callDataArray: any = [];
     console.log(values, "values -- batch");
 
     if (createCallData && performBatchTransaction) {
-
       const arr = values.membersDuesArray.map(async (item: any) => {
-        const callData = await createCallData("payDebt", [groupId, item.address, tokenValue]);
+        const callData = await createCallData("payDebt", [
+          groupId,
+          item.address,
+          tokenValue,
+        ]);
         console.log(callData, "callData-pay");
         return callData;
       });
 
       const resolvedCallDataArray = await Promise.all(arr);
 
-      resolvedCallDataArray.forEach(callData => {
+      resolvedCallDataArray.forEach((callData) => {
         callDataArray.push(callData);
       });
 
@@ -419,10 +430,8 @@ export default function Groups() {
 
       const res = performBatchTransaction("LINK", callDataArray);
       console.log(res, "res");
-
     }
-
-  }
+  };
 
   return (
     <div className="h-screen w-full">
@@ -765,7 +774,7 @@ export default function Groups() {
                                       <div className="flex flex-col items-center gap-2">
                                         <p>{item.name}</p>
                                         {splitArray[index] &&
-                                          splitArray[index].isChecked ? (
+                                        splitArray[index].isChecked ? (
                                           <p className="text-xs">
                                             {(amount / numberOfChecked).toFixed(
                                               2
@@ -848,7 +857,7 @@ export default function Groups() {
                                       if (!checked) {
                                         setAmountRemaining(
                                           amountRemaining +
-                                          unequallySplitArray[index].amount
+                                            unequallySplitArray[index].amount
                                         );
 
                                         // reset the input field to 0, when you check it back after uncheck the input should be 0, then we can modifiy the amount
@@ -894,10 +903,10 @@ export default function Groups() {
 
                                     setAmountRemaining(
                                       amount -
-                                      unequallySplitArray.reduce(
-                                        (acc, item) => acc + item.amount,
-                                        0
-                                      )
+                                        unequallySplitArray.reduce(
+                                          (acc, item) => acc + item.amount,
+                                          0
+                                        )
                                     );
                                     formik.setFieldValue(
                                       `unequallySplitArray[${index}].amount`,
@@ -956,8 +965,6 @@ export default function Groups() {
               <Formik
                 initialValues={{
                   name: "",
-                  email: "",
-                  phone: "",
                   wallet: "",
                   avatarPath: "/user.png",
                 }}
@@ -968,7 +975,7 @@ export default function Groups() {
               >
                 {(formik) => (
                   <Form>
-                    <div className="w-full pt-6 flex items-center flex-col lg:flex-row gap-4">
+                    <div className="w-full pt-6 flex items-center flex-col gap-4">
                       <div>
                         <ResponsiveDialogComponent
                           open={openAvatarModal}
@@ -1024,24 +1031,7 @@ export default function Groups() {
                           placeholder="Name"
                           className="w-full focus-visible:ring-0"
                         />
-                        <div className="flex items-center gap-3">
-                          <Field
-                            as={Input}
-                            name="email"
-                            id="email"
-                            type="text"
-                            placeholder="Email"
-                            className="w-full focus-visible:ring-0"
-                          />
-                          <Field
-                            as={Input}
-                            name="phone"
-                            id="phone"
-                            type="text"
-                            placeholder="Phone"
-                            className="w-full focus-visible:ring-0"
-                          />
-                        </div>
+
                         <Field
                           as={Input}
                           name="wallet"
@@ -1136,7 +1126,6 @@ export default function Groups() {
                                         }
                                         onCheckedChange={(checked: boolean) => {
                                           setTokenPricesArray((prev: any) => {
-                                            //  when one token is checked from the list, then uncheck the rest of the tokens
                                             console.log(item.name, "item.name");
                                             const newArray = prev.map(
                                               (item: any, i: number) => {
@@ -1229,14 +1218,14 @@ export default function Groups() {
                                                   if (checked) {
                                                     setDueRemaining(
                                                       dueRemaining -
-                                                      newArray[index].amount
+                                                        newArray[index].amount
                                                     );
                                                   }
 
                                                   if (!checked) {
                                                     setDueRemaining(
                                                       dueRemaining +
-                                                      newArray[index].amount
+                                                        newArray[index].amount
                                                     );
                                                   }
                                                   formik.setFieldValue(
@@ -1249,8 +1238,9 @@ export default function Groups() {
                                             }}
                                           />
                                           <Label
-                                            htmlFor={`membersDuesArray${index + 1
-                                              }`}
+                                            htmlFor={`membersDuesArray${
+                                              index + 1
+                                            }`}
                                             className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                                           >
                                             <img
@@ -1292,7 +1282,7 @@ export default function Groups() {
           src="/cover.png"
           alt="cover"
           className="object-cover h-full w-full"
-          style={{ objectPosition: "center 30%" }}
+          style={{objectPosition: "center 30%"}}
         />
       </div>
 
@@ -1321,18 +1311,12 @@ export default function Groups() {
         </div>
         <div className="-translate-y-5 mt-8 flex gap-3 items-center flex-row-reverse">
           <div className="flex">
-            <Avatar className="lg:h-12 lg:w-12 -ml-4 first:ml-0">
-              <AvatarImage src="/man.png" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-            <Avatar className="h-12 w-12 -ml-4">
-              <AvatarImage src="/woman.png" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-            <Avatar className="h-12 w-12 -ml-4">
-              <AvatarImage src="/woman1.png" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
+            {MembersArray.map((item: any, index: number) => (
+              <Avatar className="lg:h-12 lg:w-12 -ml-4 first:ml-0">
+                <AvatarImage src={item.avatarPath} />
+                <AvatarFallback>JD</AvatarFallback>
+              </Avatar>
+            ))}
           </div>
           {/* <div className="w-12 h-12 rounded-full border-2 grid place-content-center">
             <UserRoundPlus className="text-[#3D405B]" />
@@ -1366,7 +1350,7 @@ export default function Groups() {
             </p>
           </CardContent>
         </Card>
-        <Card className="h-fit w-64 border-2 rounded-xl">
+        {/* <Card className="h-fit w-64 border-2 rounded-xl">
           <CardHeader className="p-4 pb-0">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">Your Spending</CardTitle>
@@ -1375,7 +1359,7 @@ export default function Groups() {
           <CardContent className="p-4 pb-6">
             <p className="text-3xl font-bold text-[#3D405B]">5000 USD</p>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
       <div className="px-10 lg:px-24 pb-6 flex flex-col lg:flex-row items-center gap-6">
         <div className="h-[500px] overflow-y-auto border my-8 rounded-lg lg:w-[70%] w-full bg-white flex flex-col expense-box gap-5 relative">
@@ -1432,16 +1416,18 @@ export default function Groups() {
                     </Avatar>
                   </div>
                   <div
-                    className={` font-bold ${index !== 1 ? "text-red-600" : "text-green-600"
-                      }`}
+                    className={` font-bold ${
+                      index !== 1 ? "text-red-600" : "text-green-600"
+                    }`}
                   >
                     {Number(expense.total)} USD
                   </div>
                 </div>
 
                 <div
-                  className={` ${index === 7 ? "bg-white" : "bg-gray-200"
-                    } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
+                  className={` ${
+                    index === 7 ? "bg-white" : "bg-gray-200"
+                  } h-[1px] rounded-xl w-full mt-4 mb-0 translate-y-3`}
                 />
               </div>
             ))}
@@ -1480,7 +1466,7 @@ export default function Groups() {
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14">
-                  <AvatarImage src="/man.png" />
+                  <AvatarImage src={member.avatarPath} />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
