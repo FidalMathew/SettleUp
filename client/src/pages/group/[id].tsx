@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {Input} from "@/components/ui/input";
 import {
   ResponsiveDialogComponent,
@@ -53,6 +53,14 @@ interface SplitArray {
   name: string;
   amount: number;
   isChecked: boolean;
+}
+
+function debounce<F extends (...args: any[]) => any>(func: F, delay: number) {
+  let debounceTimer: NodeJS.Timeout;
+  return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(this, args), delay);
+  };
 }
 
 export default function Groups() {
@@ -291,11 +299,21 @@ export default function Groups() {
     })();
   }, [groupId, groups]);
 
-  const handleAddGroupMember = async (values: any) => {
-    if (!gaslessTransaction) return console.log("gaslessTransaction not found");
+  const handleAddGroupMember = async (walletAddress: string) => {
+    setGaslessTransactionLoading(true);
 
-    const res = await gaslessTransaction("addMember", [groupId, values.wallet]);
-    console.log(res, "res");
+    if (!gaslessTransaction) return console.log("gaslessTransaction not found");
+    try {
+      const res = await gaslessTransaction("addMember", [
+        groupId,
+        walletAddress,
+      ]);
+      console.log(res, "res");
+    } catch (err) {
+      console.log(err, "err");
+    } finally {
+      setGaslessTransactionLoading(false);
+    }
   };
 
   const handleAddExpense = async (values: any) => {
@@ -431,6 +449,56 @@ export default function Groups() {
       const res = performBatchTransaction("LINK", callDataArray);
       console.log(res, "res");
     }
+  };
+
+  const [queryLoading, setQueryLoading] = useState(false);
+  const [results, setResults] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
+  const [
+    fetchAllMemberDetailsSearchQuery,
+    setFetchAllMemberDetailsSearchQuery,
+  ] = useState<any>([]);
+
+  useEffect(() => {
+    if (query !== "") {
+      setQueryLoading(true);
+      debouncedFetchResults(query);
+    }
+  }, [query]);
+
+  const debouncedFetchResults = useCallback(
+    debounce(async (searchQuery: string) => {
+      try {
+        if (searchQuery === "") {
+          setResults([]);
+          return;
+        }
+        if (searchQuery !== "" && fetchAddress && fetchNameAndAvatar) {
+          const response = await fetchAddress(searchQuery);
+          const res = await fetchNameAndAvatar(response);
+          const arr = [response, res];
+
+          console.log(arr, "response");
+          setResults(arr);
+        }
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+        setResults([]);
+      } finally {
+        setQueryLoading(false);
+      }
+
+      console.log(searchQuery, "searchQuery");
+    }, 500),
+    []
+  );
+
+  const handleInputChange = (e: any, formik: any) => {
+    formik.handleChange(e);
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    setQueryLoading(true);
+    debouncedFetchResults(newQuery);
   };
 
   return (
@@ -961,44 +1029,77 @@ export default function Groups() {
             <ResponsiveDialogComponentTitle>
               Add Group Member
             </ResponsiveDialogComponentTitle>
-            <ResponsiveDialogComponentDescription>
+            <ResponsiveDialogComponentDescription className="h-[100px] flex items-center w-full">
               <Formik
                 initialValues={{
                   name: "",
+                  walletAddress: "",
                 }}
                 onSubmit={(values, action) => {
-                  // console.log(values);
-                  handleAddGroupMember(values);
+                  console.log(values);
+                  // handleAddGroupMember(values.walletAddress);
                 }}
               >
                 {(formik) => (
-                  <Form>
+                  <Form className="w-full">
                     <div className="w-full pt-6 flex items-center flex-col gap-4">
-                      <div></div>
-                      <div className="flex flex-col w-full gap-2">
+                      <div className="flex flex-col w-full gap-2 relative">
                         <Field
                           as={Input}
                           name="name"
                           id="name"
                           type="text"
-                          placeholder="Name"
+                          placeholder="Search for Name"
                           className="w-full focus-visible:ring-0"
+                          onChange={(e: any) => handleInputChange(e, formik)}
                         />
+
+                        {formik.values.name !== "" && (
+                          <div className="w-full absolute h-[100px] bg-white top-[47px] rounded">
+                            {queryLoading ? (
+                              <div className="skeleton-loader">Loading...</div>
+                            ) : results && results[0] !== "" ? (
+                              <div className="flex items-center justify-between px-5 pt-5">
+                                <div className="flex items-center gap-4 hover:bg-gray-100 cursor-pointer">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage src={results[1][1]} />
+                                    <AvatarFallback>JD</AvatarFallback>
+                                  </Avatar>
+
+                                  <div>
+                                    <p className="">{results[1][0]}</p>
+                                    <p>
+                                      {results[0].slice(0, 6) +
+                                        "..." +
+                                        results[0].slice(-6)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {gaslessTransactionLoading ? (
+                                  <Button disabled size="sm">
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Adding
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    className="bg-[#81B29A] hover:bg-[#81B29A]"
+                                    onClick={() =>
+                                      handleAddGroupMember(results[0])
+                                    }
+                                  >
+                                    Add
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="no-results">No results found</div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    {gaslessTransactionLoading ? (
-                      <Button disabled>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Please wait
-                      </Button>
-                    ) : (
-                      <Button
-                        className="bg-[#81B29A] hover:bg-[#81B29A] w-full mt-4"
-                        type="submit"
-                      >
-                        Add Member
-                      </Button>
-                    )}
                   </Form>
                 )}
               </Formik>
