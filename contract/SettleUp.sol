@@ -21,6 +21,9 @@ contract SettleUp {
         address[] debtors;
         uint256[] amount;
         uint256 total;
+        string desc;
+        string date;
+        string category;
     }
 
     Expense[] expenses;
@@ -139,7 +142,10 @@ contract SettleUp {
         address _creditor,
         address[] memory _debtors,
         uint256[] memory _amounts,
-        uint256 _total
+        uint256 _total,
+        string memory _desc,
+        string memory _date,
+        string memory _category
     ) public {
         require(
             isMember(_groupId, _creditor),
@@ -165,7 +171,10 @@ contract SettleUp {
             _creditor,
             _debtors,
             _amounts,
-            _total
+            _total,
+            _desc,
+            _date,
+            _category
         );
         expenses.push(exp);
     }
@@ -273,8 +282,8 @@ contract SettleUp {
 
         if (token == 0) {
             // LINK
-            _tokenAddress = 0x779877A7B0D9E8603169DdbD7836e478b4624789;
-            priceFeed = 0xc59E3633BAAC79493d908e63626716e204A45EdF;
+            _tokenAddress = 0x0F5CC78D949c3cD5B6264A9Fb1a423A6075bf68A;
+            priceFeed = 0x5310f2d4B531BCEA8126e2aEE40BAd71B707f530;
 
             payInLink(
                 _creditor,
