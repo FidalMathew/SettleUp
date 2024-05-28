@@ -48,6 +48,7 @@ import {emoji} from "@/lib/emoji";
 import {useContractFunctionContextHook} from "@/Context/ContractContext";
 import moment from "moment";
 import {toast} from "sonner";
+import {useWallets} from "@privy-io/react-auth";
 
 interface SplitArray {
   name: string;
@@ -90,6 +91,7 @@ export default function Groups() {
   const [openAIBox, setOpenAIBox] = useState(false);
   const [openPayAllBox, setOpenPayAllBox] = useState(false);
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
+  const {wallets} = useWallets();
 
   // loading states
   const [gaslessTransactionLoading, setGaslessTransactionLoading] =
@@ -152,6 +154,7 @@ export default function Groups() {
   );
 
   const [membersDuesArray, setMembersDuesArray] = useState<any>([]);
+  const [membersDuesAvatarArray, setMembersDuesAvatarArray] = useState<any>([]);
   const [dueRemaining, setDueRemaining] = useState(0);
 
   useEffect(() => {
@@ -293,11 +296,21 @@ export default function Groups() {
           }
         );
 
+        if (fetchNameAndAvatar && debts && debts.length > 0) {
+          const newMembersDuesAvatarArray = debts?.map(async (item: any) => {
+            const avatar = await fetchNameAndAvatar(item.address);
+            return avatar;
+          });
+
+          const res = await Promise.all(newMembersDuesAvatarArray);
+          setMembersDuesAvatarArray(res);
+        }
+
         setDueRemaining(totalDue);
         setMembersDuesArray(debts);
       }
     })();
-  }, [groupId, groups]);
+  }, [groupId, groups, getGroupMembers, fetchNameAndAvatar]);
 
   const handleAddGroupMember = async (walletAddress: string) => {
     setGaslessTransactionLoading(true);
@@ -454,10 +467,6 @@ export default function Groups() {
   const [queryLoading, setQueryLoading] = useState(false);
   const [results, setResults] = useState<string[]>([]);
   const [query, setQuery] = useState("");
-  const [
-    fetchAllMemberDetailsSearchQuery,
-    setFetchAllMemberDetailsSearchQuery,
-  ] = useState<any>([]);
 
   useEffect(() => {
     if (query !== "") {
@@ -500,6 +509,30 @@ export default function Groups() {
     setQueryLoading(true);
     debouncedFetchResults(newQuery);
   };
+
+  const [expenseAvatarArray, setExpenseAvatarArray] = useState<any>([]);
+
+  useEffect(() => {
+    (async function () {
+      if (groupExpenses && fetchNameAndAvatar) {
+        const avatarPromises = groupExpenses.map(async (item: any) => {
+          const debtorPromises = item.debtors.map(async (address: string) => {
+            const res = await fetchNameAndAvatar(address);
+            return res[1];
+          });
+
+          const res1 = await Promise.all(debtorPromises);
+          return res1;
+        });
+
+        const res = await Promise.all(avatarPromises);
+        console.log(res, "avatarPromises");
+        setExpenseAvatarArray(res);
+      }
+    })();
+  }, [groupExpenses]);
+
+  console.log(membersDuesAvatarArray, "fidjoke");
 
   return (
     <div className="h-screen w-full">
@@ -590,11 +623,9 @@ export default function Groups() {
                             <SelectGroup>
                               {MembersArray.map((item: any, index: number) => (
                                 <SelectItem value={item.address}>
-                                  {/* picture and text */}
-
                                   <div className="flex items-center gap-3">
                                     <img
-                                      src="/man.png"
+                                      src={item.avatarPath}
                                       alt="man"
                                       className="h-6 w-6"
                                     />
@@ -625,20 +656,26 @@ export default function Groups() {
                                 {/* picture and text */}
 
                                 <div className="flex items-center gap-3">
-                                  <img src="/burger.png" className="h-6 w-6" />
+                                  <img
+                                    src="/category/food.png"
+                                    className="h-6 w-6"
+                                  />
                                   <p>Food</p>
                                 </div>
                               </SelectItem>
                               <SelectItem value="fuel">
                                 <div className="flex items-center gap-3">
-                                  <img src="/fuel.png" className="h-6 w-6" />
+                                  <img
+                                    src="/category/fuel.png"
+                                    className="h-6 w-6"
+                                  />
                                   <p>Fuel</p>
                                 </div>
                               </SelectItem>
                               <SelectItem value="shopping">
                                 <div className="flex items-center gap-3">
                                   <img
-                                    src="/shopping.png"
+                                    src="/category/shopping.png"
                                     className="h-6 w-6"
                                   />
                                   <p>Shopping</p>
@@ -646,14 +683,17 @@ export default function Groups() {
                               </SelectItem>
                               <SelectItem value="cab">
                                 <div className="flex items-center gap-3">
-                                  <img src="/car.png" className="h-6 w-6" />
+                                  <img
+                                    src="/category/cab.png"
+                                    className="h-6 w-6"
+                                  />
                                   <p>Cab</p>
                                 </div>
                               </SelectItem>
                               <SelectItem value="grocery">
                                 <div className="flex items-center gap-3">
                                   <img
-                                    src="/vegetable.png"
+                                    src="/category/grocery.png"
                                     className="h-6 w-6"
                                   />
                                   <p>Grocery</p>
@@ -661,19 +701,28 @@ export default function Groups() {
                               </SelectItem>
                               <SelectItem value="train">
                                 <div className="flex items-center gap-3">
-                                  <img src="/train.png" className="h-6 w-6" />
+                                  <img
+                                    src="/category/train.png"
+                                    className="h-6 w-6"
+                                  />
                                   <p>Train</p>
                                 </div>
                               </SelectItem>
                               <SelectItem value="sports">
                                 <div className="flex items-center gap-3">
-                                  <img src="/sports.png" className="h-6 w-6" />
+                                  <img
+                                    src="/category/sports.png"
+                                    className="h-6 w-6"
+                                  />
                                   <p>Sports</p>
                                 </div>
                               </SelectItem>
                               <SelectItem value="temple">
                                 <div className="flex items-center gap-3">
-                                  <img src="/temple.png" className="h-6 w-6" />
+                                  <img
+                                    src="/category/temple.png"
+                                    className="h-6 w-6"
+                                  />
                                   <p>Temple</p>
                                 </div>
                               </SelectItem>
@@ -835,7 +884,7 @@ export default function Groups() {
                                       className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                                     >
                                       <img
-                                        src="/man.png"
+                                        src={item.avatarPath}
                                         alt="man"
                                         className="mb-3 h-8  w-8 "
                                       />
@@ -882,11 +931,12 @@ export default function Groups() {
                             </p>
                           </div>
                           <div className="flex flex-col gap-3 border p-2 h-[250px] overflow-y-auto expense-box placeholder pb-[33px]">
-                            {MembersArray.map((_: any, index: number) => (
+                            {MembersArray.map((item: any, index: number) => (
                               <div
                                 className="flex items-center justify-between space-x-2 p-3 rounded-xl bg-gray-50"
                                 key={index}
                               >
+                                {/* {console.log(item, "unequallySplitMember")} */}
                                 <div className="flex gap-3 items-center">
                                   <Checkbox
                                     id={`unequallySplitArray${index}`}
@@ -952,11 +1002,11 @@ export default function Groups() {
                                   />
                                   <div className="flex gap-4 items-center">
                                     <Avatar className="h-10 w-10">
-                                      <AvatarImage src="/woman.png" />
+                                      <AvatarImage src={item.avatarPath} />
                                       <AvatarFallback>JD</AvatarFallback>
                                     </Avatar>
 
-                                    <p>You</p>
+                                    <p>{item.name}</p>
                                   </div>
                                 </div>
                                 <Field
@@ -1058,7 +1108,9 @@ export default function Groups() {
                           <div className="w-full absolute h-[100px] bg-white top-[47px] rounded">
                             {queryLoading ? (
                               <div className="skeleton-loader">Loading...</div>
-                            ) : results && results[0] !== "" ? (
+                            ) : results &&
+                              results[0] !== "" &&
+                              results[1] !== "" ? (
                               <div className="flex items-center justify-between px-5 pt-5">
                                 <div className="flex items-center gap-4 hover:bg-gray-100 cursor-pointer">
                                   <Avatar className="h-10 w-10">
@@ -1289,7 +1341,9 @@ export default function Groups() {
                                             className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                                           >
                                             <img
-                                              src="/man.png"
+                                              src={
+                                                membersDuesAvatarArray[index][1]
+                                              }
                                               alt="man"
                                               className="mb-3 h-8  w-8 "
                                             />
@@ -1425,17 +1479,21 @@ export default function Groups() {
                 <div className="flex items-center gap-3 justify-between">
                   <div className="flex items-center lg:gap-5 gap-3">
                     <div className="flex justify-center items-center lg:items-end flex-col">
-                      <p className="lg:text-lg font-semibold">24 Jan</p>
-                      <p className="text-xs">12:00pm</p>
+                      {/* <p className="lg:text-lg font-semibold">24 Jan</p> */}
+                      <p className="lg:text-lg font-semibold"></p>
+                      <p className="text-xs"></p>
+                      {/* <p className="text-xs">12:00pm</p> */}
                     </div>
                     <div className="flex gap-3 items-center translate-y-1">
                       <Avatar className="lg:h-14 lg:w-14 -ml-4 first:ml-0">
-                        <AvatarImage src="/travel.png" />
+                        <AvatarImage
+                          src={`/category/${expense.category}.png`}
+                        />
                         <AvatarFallback>JD</AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
                         <p className="text-sm lg:text-lg font-semibold">
-                          Resort Booking
+                          {expense.desc}
                         </p>
                         <p className="text-xs">
                           Paid by {nameAddressMap.get(expense.creditor)}
@@ -1446,25 +1504,25 @@ export default function Groups() {
                   </div>
 
                   <div className="flex ml-6 items-center">
-                    <Avatar className="h-8 w-8 -ml-4 first:ml-0">
-                      <AvatarImage src="/man.png" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-
-                    <Avatar className="h-8 w-8 -ml-4">
-                      <AvatarImage src="/woman.png" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <Avatar className="h-8 w-8 -ml-4">
-                      <AvatarImage src="/woman1.png" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
+                    {expenseAvatarArray[index] &&
+                      expenseAvatarArray[index].map((item: string) => (
+                        <Avatar className="h-8 w-8 -ml-4 first:ml-0">
+                          <AvatarImage src={item} />
+                          <AvatarFallback>JD</AvatarFallback>
+                        </Avatar>
+                      ))}
+                    {}
                   </div>
                   <div
                     className={` font-bold ${
-                      index !== 1 ? "text-red-600" : "text-green-600"
+                      wallets && wallets[0].address === expense.creditor
+                        ? "text-green-600"
+                        : "text-red-600"
                     }`}
                   >
+                    {wallets && wallets[0].address === expense.creditor
+                      ? "+"
+                      : "-"}{" "}
                     {Number(expense.total)} USD
                   </div>
                 </div>
