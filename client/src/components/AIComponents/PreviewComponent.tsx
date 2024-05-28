@@ -20,41 +20,50 @@ const debounce = (
 
 export default function PreviewComponent({q}: {q: string}) {
   const [query, setQuery] = useState<string>(q);
-  const [functionInterpretation, setFunctionInterpretation] = useState(
-    "addMember jaydeep 0x3bBE9251408568838203FA1E381e879719517FA0 asd@gmai.com 1231231231 manali"
-  );
+  const [functionInterpretation, setFunctionInterpretation] = useState("");
   const [chatHistory, setChatHistory] = useState([] as any);
   const [loading, setLoading] = useState(false);
 
-  // useEffect(() => {
-  //   if (query.length === 0) {
-  //     return;
-  //   }
+  useEffect(() => {
+    const storedChatHistory = localStorage.getItem("chatHistory");
+    if (storedChatHistory) {
+      setChatHistory(JSON.parse(storedChatHistory));
+    }
+  }, []);
 
-  //   setLoading(true);
-  //   axios
-  //     .post("http://localhost:8000/gemini", {
-  //       history: chatHistory,
-  //       message: q,
-  //     })
-  //     .then(({data}) => {
-  //       setFunctionInterpretation(data);
-  //       setChatHistory((oldchathistory: any) => [
-  //         ...oldchathistory,
-  //         {
-  //           role: "user",
-  //           parts: [{text: q}],
-  //         },
-  //         {
-  //           role: "model",
-  //           parts: [{text: data}],
-  //         },
-  //       ]);
-  //     })
-  //     .finally(() => {
-  //       setLoading(false);
-  //     });
-  // }, [query]);
+  useEffect(() => {
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+  }, [chatHistory]);
+
+  useEffect(() => {
+    if (query.length === 0) {
+      return;
+    }
+
+    setLoading(true);
+    axios
+      .post("http://localhost:8000/gemini", {
+        history: chatHistory,
+        message: q,
+      })
+      .then(({data}) => {
+        setFunctionInterpretation(data);
+        setChatHistory((oldchathistory: any) => [
+          ...oldchathistory,
+          {
+            role: "user",
+            parts: [{text: q}],
+          },
+          {
+            role: "model",
+            parts: [{text: data}],
+          },
+        ]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [query]);
 
   console.log(query, "query");
   console.log(functionInterpretation, "functionInterpretation");

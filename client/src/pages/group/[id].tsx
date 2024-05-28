@@ -487,7 +487,7 @@ export default function Groups() {
           const res = await fetchNameAndAvatar(response);
           const arr = [response, res];
 
-          console.log(arr, "response");
+          console.log(arr, "response1");
           setResults(arr);
         }
       } catch (error) {
@@ -1105,13 +1105,15 @@ export default function Groups() {
                         />
 
                         {formik.values.name !== "" && (
-                          <div className="w-full absolute h-[100px] bg-white top-[47px] rounded">
+                          <div className="absolute h-[100px] bg-white top-[47px] rounded flex items-center justify-center w-full border">
                             {queryLoading ? (
                               <div className="skeleton-loader">Loading...</div>
                             ) : results &&
-                              results[0] !== "" &&
-                              results[1] !== "" ? (
-                              <div className="flex items-center justify-between px-5 pt-5">
+                              results[0] &&
+                              results[1] &&
+                              results[1][0] !== "" &&
+                              results[1][1] !== "" ? (
+                              <div className="flex items-center justify-between px-5 pt-5 w-full">
                                 <div className="flex items-center gap-4 hover:bg-gray-100 cursor-pointer">
                                   <Avatar className="h-10 w-10">
                                     <AvatarImage src={results[1][1]} />
@@ -1146,7 +1148,7 @@ export default function Groups() {
                                 )}
                               </div>
                             ) : (
-                              <div className="no-results">No results found</div>
+                              <div className="p-4">No results found</div>
                             )}
                           </div>
                         )}
