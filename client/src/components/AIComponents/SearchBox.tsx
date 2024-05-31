@@ -4,9 +4,16 @@ import PreviewComponent from "./PreviewComponent";
 interface SearchBoxProps {
   openAIBox: boolean;
   setOpenAIBox: (value: boolean) => void;
+  groupId: string;
+  membersArray: any;
 }
 
-export default function SearchBox({openAIBox, setOpenAIBox}: SearchBoxProps) {
+export default function SearchBox({
+  openAIBox,
+  setOpenAIBox,
+  groupId,
+  membersArray,
+}: SearchBoxProps) {
   return (
     <Search
       label="Query a Command Using AI"
@@ -44,7 +51,13 @@ export default function SearchBox({openAIBox, setOpenAIBox}: SearchBoxProps) {
                 <div>Creates a new group with the given name.</div>
               </div>
             }
-            preview={<PreviewComponent q={q} />}
+            preview={
+              <PreviewComponent
+                q={q}
+                groupId={groupId}
+                membersArray={membersArray}
+              />
+            }
           />
         );
       }}

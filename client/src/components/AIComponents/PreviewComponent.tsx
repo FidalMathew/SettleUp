@@ -1,8 +1,9 @@
 import axios from "axios";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import CreateGroup from "./CreateGroup";
 import AddMembers from "./AddMember";
 import AddExpense from "./AddExpense";
+import {Skeleton} from "../ui/skeleton";
 
 type DebouncedFunction = (...args: any[]) => void;
 
@@ -18,16 +19,29 @@ const debounce = (
   };
 };
 
-export default function PreviewComponent({q}: {q: string}) {
+export default function PreviewComponent({
+  q,
+  groupId,
+  membersArray,
+}: {
+  q: string;
+  groupId: string;
+  membersArray: any;
+}) {
   const [query, setQuery] = useState<string>(q);
   const [functionInterpretation, setFunctionInterpretation] = useState("");
   const [chatHistory, setChatHistory] = useState([] as any);
   const [loading, setLoading] = useState(false);
 
+  const hasMounted = useRef(false);
+
   useEffect(() => {
     const storedChatHistory = localStorage.getItem("chatHistory");
     if (storedChatHistory) {
-      setChatHistory(JSON.parse(storedChatHistory));
+      setChatHistory((oldChatHistory: any) => [
+        ...oldChatHistory,
+        ...JSON.parse(storedChatHistory),
+      ]);
     }
   }, []);
 
@@ -40,19 +54,25 @@ export default function PreviewComponent({q}: {q: string}) {
       return;
     }
 
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+
+    console.log("Query changed:", query);
     setLoading(true);
     axios
       .post("http://localhost:8000/gemini", {
         history: chatHistory,
-        message: q,
+        message: query,
       })
       .then(({data}) => {
         setFunctionInterpretation(data);
-        setChatHistory((oldchathistory: any) => [
-          ...oldchathistory,
+        setChatHistory((oldChatHistory: any) => [
+          ...oldChatHistory,
           {
             role: "user",
-            parts: [{text: q}],
+            parts: [{text: query}],
           },
           {
             role: "model",
@@ -60,25 +80,42 @@ export default function PreviewComponent({q}: {q: string}) {
           },
         ]);
       })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setFunctionInterpretation("");
+      })
       .finally(() => {
         setLoading(false);
       });
   }, [query]);
 
-  console.log(query, "query");
   console.log(functionInterpretation, "functionInterpretation");
   return (
-    <div>
+    <div className="w-full">
       {loading ? (
-        <div>Loading...</div>
+        <Skeleton className="w-full h-[200px]" />
       ) : functionInterpretation.split(" ")[0] === "createGroup" ? (
         <CreateGroup datastring={functionInterpretation} />
       ) : functionInterpretation.split(" ")[0] === "addMember" ? (
-        <AddMembers datastring={functionInterpretation} />
+        <AddMembers
+          datastring={functionInterpretation}
+          groupId={groupId}
+          membersArray={membersArray}
+        />
       ) : functionInterpretation.split(" ")[0] === "addExpense" ? (
         <AddExpense datastring={functionInterpretation} />
       ) : (
-        <div>Sorry Didn't understand you</div>
+        <div>
+          <p className="text-lg font-semibold text-center w-full">
+            Invalid Command
+          </p>
+
+          <div className="w-full flex flex-col items-center">
+            <p className="text-lg font-semibold text-center w-full">
+              Please try again
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

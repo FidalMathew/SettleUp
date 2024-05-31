@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {cn} from "@/lib/utils";
+import {cn, convertStringToJSON} from "@/lib/utils";
 import {format} from "date-fns";
 import {Calendar} from "@/components/ui/calendar";
 import {CalendarIcon} from "lucide-react";
@@ -29,6 +29,9 @@ import {Avatar, AvatarFallback, AvatarImage} from "../ui/avatar";
 import {Form, Formik} from "formik";
 export default function AddExpense({datastring}: {datastring: string}) {
   const [date, setDate] = useState<Date>();
+  const [data, setData] = useState(convertStringToJSON(datastring));
+
+  console.log(data, "from add expense");
   return (
     <div className="w-full">
       <Formik

@@ -323,6 +323,9 @@ export default function Groups() {
         walletAddress,
       ]);
       console.log(res, "res");
+      toast(
+        "Member added successfully, please refresh the page to see the changes"
+      );
     } catch (err) {
       console.log(err, "err");
     } finally {
@@ -340,6 +343,10 @@ export default function Groups() {
       const creditor = values.paidBy;
       let debtors: string[] = [];
       let amountsArray: number[] = [];
+
+      console.log(debtors, "debtors");
+      console.log(amountsArray, "debtors amountsArray");
+      console.log(creditor, "creditor");
       if (values.equalSplit && fetchAddress) {
         const fetchPromises = values.splitArray.map(async (item: any) => {
           const address = await fetchAddress(item.name);
@@ -361,9 +368,6 @@ export default function Groups() {
         // Wait for all promises to resolve
         await Promise.all(fetchPromises);
       }
-
-      console.log(debtors, "debtors");
-      console.log(amountsArray, "debtors amountsArray");
 
       if (values.equalSplit && debtors.length > 0 && amountsArray.length > 0) {
         const res = await gaslessTransaction("addExpense", [
@@ -561,7 +565,12 @@ export default function Groups() {
 
   return (
     <div className="h-screen w-full">
-      <SearchBox openAIBox={openAIBox} setOpenAIBox={setOpenAIBox} />
+      <SearchBox
+        openAIBox={openAIBox}
+        setOpenAIBox={setOpenAIBox}
+        groupId={groupId as string}
+        membersArray={MembersArray}
+      />
       <ResponsiveDialogComponent
         open={addExpenseBox}
         onOpenChange={setAddExpenseBox}
@@ -585,7 +594,7 @@ export default function Groups() {
                 }}
                 onSubmit={(values, action) => {
                   // action.resetForm()
-                  console.log(values);
+                  console.log(values, "values - expense");
                   handleAddExpense(values);
                 }}
               >

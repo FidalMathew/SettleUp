@@ -23,10 +23,6 @@ export function convertStringToJSON(input: string) {
     jsonObject = {
       function: parts[0],
       member: parts[1],
-      wallet_address: parts[2],
-      email: parts[3],
-      phone: parts[4],
-      group: parts[5],
     };
   } else if (parts[0] === "addExpense") {
     jsonObject = {

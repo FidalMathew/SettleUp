@@ -128,7 +128,10 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                           >
                             <div className="flex items-center flex-col">
-                              <img src="/burger.png" className="h-6 w-6 mb-3" />
+                              <img
+                                src="/category/food.png"
+                                className="h-6 w-6 mb-3"
+                              />
                               <p>Food</p>
                             </div>
                           </Label>
@@ -146,7 +149,10 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                           >
                             <div className="flex items-center flex-col">
-                              <img src="/fuel.png" className="h-6 w-6 mb-3" />
+                              <img
+                                src="/category/fuel.png"
+                                className="h-6 w-6 mb-3"
+                              />
                               <p>Fuel</p>
                             </div>
                           </Label>
@@ -165,7 +171,7 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                           >
                             <div className="flex items-center flex-col">
                               <img
-                                src="/shopping.png"
+                                src="/category/shopping.png"
                                 className="h-6 w-6 mb-3"
                               />
                               <p>Shopping</p>
@@ -185,7 +191,10 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                           >
                             <div className="flex items-center flex-col">
-                              <img src="/car.png" className="h-6 w-6 mb-3" />
+                              <img
+                                src="/category/cab.png"
+                                className="h-6 w-6 mb-3"
+                              />
                               <p>Cab</p>
                             </div>
                           </Label>
@@ -204,7 +213,7 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                           >
                             <div className="flex items-center flex-col">
                               <img
-                                src="/vegetable.png"
+                                src="/category/grocery.png"
                                 className="h-6 w-6 mb-3"
                               />
                               <p>Grocery</p>
@@ -224,7 +233,10 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                           >
                             <div className="flex items-center flex-col">
-                              <img src="/train.png" className="h-6 w-6 mb-3" />
+                              <img
+                                src="/category/train.png"
+                                className="h-6 w-6 mb-3"
+                              />
                               <p>Train</p>
                             </div>
                           </Label>
@@ -242,7 +254,10 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                           >
                             <div className="flex items-center flex-col">
-                              <img src="/sports.png" className="h-6 w-6 mb-3" />
+                              <img
+                                src="/category/sports.png"
+                                className="h-6 w-6 mb-3"
+                              />
                               <p>Sports</p>
                             </div>
                           </Label>
@@ -260,7 +275,10 @@ export default function CreateGroup({datastring}: {datastring: string}) {
                             className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
                           >
                             <div className="flex items-center flex-col">
-                              <img src="/temple.png" className="h-6 w-6 mb-3" />
+                              <img
+                                src="/category/temple.png"
+                                className="h-6 w-6 mb-3"
+                              />
                               <p>Temple</p>
                             </div>
                           </Label>

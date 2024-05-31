@@ -1,11 +1,11 @@
-import {Plus} from "lucide-react";
+import {Loader2, Plus} from "lucide-react";
 import {Avatar, AvatarFallback, AvatarImage} from "../ui/avatar";
 import {Input} from "../ui/input";
 import {Label} from "../ui/label";
 import {PreviewComponent} from "searchpal";
 import {Field, Form, Formik} from "formik";
 import {convertStringToJSON} from "@/lib/utils";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {
   ResponsiveDialogComponent,
@@ -16,131 +16,188 @@ import {
   ResponsiveDialogComponentTitle,
 } from "@/components/ui/ResponsiveDialog";
 import {emoji} from "../../lib/emoji";
+import {useContractFunctionContextHook} from "@/Context/ContractContext";
+import {Skeleton} from "../ui/skeleton";
+import {toast} from "sonner";
 
-const AddMembers = ({datastring}: {datastring: string}) => {
+function debounce<F extends (...args: any[]) => any>(func: F, delay: number) {
+  let debounceTimer: NodeJS.Timeout;
+  return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
+const AddMembers = ({
+  datastring,
+  groupId,
+  membersArray,
+}: {
+  datastring: string;
+  groupId: string;
+  membersArray: any;
+}) => {
   const [data, setData] = useState(convertStringToJSON(datastring));
   const [openAvatarModal, setOpenAvatarModal] = useState(false);
   const getRandomEmoji = () => emoji[Math.floor(Math.random() * emoji.length)];
   const randomAvatar = getRandomEmoji();
-
+  const [results, setResults] = useState<string[]>([]);
   console.log(data, "from add members");
+
+  const {fetchAddress, fetchNameAndAvatar, gaslessTransaction} =
+    useContractFunctionContextHook();
+  const [loading, setLoading] = useState(false);
+  const [gaslessTransactionLoading, setGaslessTransactionLoading] =
+    useState(false);
+
+  const handleAddGroupMember = async (walletAddress: string) => {
+    setGaslessTransactionLoading(true);
+
+    if (!gaslessTransaction || !groupId) return;
+    try {
+      const res = await gaslessTransaction("addMember", [
+        groupId,
+        walletAddress,
+      ]);
+      console.log(res, "res");
+      toast(
+        "Member added successfully, please refresh the page to see the changes"
+      );
+    } catch (err) {
+      console.log(err, "err");
+    } finally {
+      setGaslessTransactionLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    (async function () {
+      if (fetchAddress && fetchNameAndAvatar && data) {
+        setLoading(true); // Set loading to true when starting the fetch process
+        try {
+          const response = await fetchAddress(data.member!);
+          console.log("Address response:", response);
+
+          if (response) {
+            console.log("Fetching name and avatar for response:", response);
+            const res = await fetchNameAndAvatar(response);
+            console.log("Name and Avatar response:", res);
+
+            const arr = [response, res];
+            console.log("Final result array:", arr);
+
+            setResults(arr);
+          } else {
+            console.warn("No response from fetchAddress");
+            setResults([]);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          setResults([]);
+        } finally {
+          setLoading(false); // Set loading to false when the fetch process is completed
+        }
+      }
+    })();
+  }, [data, fetchAddress, fetchNameAndAvatar]);
+
+  console.log(results, "results");
   return (
-    <div>
-      <p className="text-lg font-semibold text-center">Add Members</p>
-      <Formik
-        initialValues={{
-          name: data.member || "",
-          email: data.email || "",
-          phone: data.phone || "",
-          wallet: data.wallet_address || "",
-          avatarPath: randomAvatar.imgpath,
-        }}
-        onSubmit={(values, action) => {
-          console.log(values);
-        }}
-      >
-        {(formik) => (
-          <Form>
-            <ResponsiveDialogComponent
-              open={openAvatarModal}
-              onOpenChange={setOpenAvatarModal}
-            >
-              <ResponsiveDialogComponentContent>
-                <ResponsiveDialogComponentHeader>
-                  <ResponsiveDialogComponentTitle>
-                    <p>Select an Emoji</p>
-                  </ResponsiveDialogComponentTitle>
-                  <ResponsiveDialogComponentDescription>
-                    <div className="grid grid-cols-3 grid-flow-row grid-rows-3 w-full place-items-center pt-5 gap-6">
-                      {emoji.map(
-                        (
-                          item: {
-                            imgpath: string;
-                            name: string;
-                          },
-                          index: number
-                        ) => (
-                          <div
-                            key={index}
-                            className="border rounded-xl p-4 flex flex-col gap-2 aspect-square h-fit items-center cursor-pointer hover:bg-muted"
-                          >
-                            <img
-                              src={item.imgpath}
-                              alt={item.name}
-                              className="h-16 w-16"
-                              onClick={() => {
-                                formik.setFieldValue(
-                                  "avatarPath",
-                                  item.imgpath
-                                );
-                                setOpenAvatarModal(false);
-                              }}
-                            />
-                            {/* <p>Man</p> */}
-                          </div>
-                        )
-                      )}
+    <div className="w-full flex flex-col">
+      <p className="text-lg font-semibold text-center w-full">Member Details</p>
+
+      {loading === true && <Skeleton className="w-full h-[200px]" />}
+
+      {!loading &&
+        results &&
+        results[1] &&
+        results[1][1] === "" &&
+        results[1][0] === "" && <div>not found</div>}
+      {!loading &&
+        results &&
+        results[1] &&
+        results[1][1] !== "" &&
+        results[1][0] !== "" && (
+          <Formik
+            initialValues={{
+              name: data.member || "",
+              wallet: results[0],
+              avatarPath: results[1][1],
+            }}
+            onSubmit={(values, action) => {
+              // console.log(values, "values");
+              handleAddGroupMember(values.wallet);
+            }}
+          >
+            {(formik) => (
+              <Form className="w-full">
+                <div className="w-full pt-6 flex items-center flex-col gap-6">
+                  <Avatar
+                    className="w-32 h-32 relative overflow-visible"
+                    onClick={() => setOpenAvatarModal((prev) => !prev)}
+                  >
+                    <AvatarImage src={formik.values.avatarPath} />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col w-full gap-2">
+                    <div className="flex items-center">
+                      <Label htmlFor="name" className="w-32">
+                        Name
+                      </Label>
+                      <Field
+                        as={Input}
+                        name="name"
+                        id="name"
+                        type="text"
+                        placeholder="Name"
+                        className="w-full focus-visible:ring-0"
+                      />
                     </div>
-                  </ResponsiveDialogComponentDescription>
-                </ResponsiveDialogComponentHeader>
-              </ResponsiveDialogComponentContent>
-            </ResponsiveDialogComponent>
 
-            <div className="w-full pt-6 flex items-center flex-col gap-4">
-              <Avatar
-                className="w-32 h-32 relative overflow-visible cursor-pointer"
-                onClick={() => setOpenAvatarModal((prev) => !prev)}
-              >
-                <AvatarImage src={formik.values.avatarPath} />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col w-full gap-2">
-                <Field
-                  as={Input}
-                  name="name"
-                  id="name"
-                  type="text"
-                  placeholder="Name"
-                  className="w-full focus-visible:ring-0"
-                />
-                <div className="flex items-center gap-3">
-                  <Field
-                    as={Input}
-                    name="email"
-                    id="email"
-                    type="text"
-                    placeholder="Email"
-                    className="w-full focus-visible:ring-0"
-                  />
-                  <Field
-                    as={Input}
-                    name="phone"
-                    id="phone"
-                    type="text"
-                    placeholder="Phone"
-                    className="w-full focus-visible:ring-0"
-                  />
+                    <div className="flex items-center">
+                      <Label htmlFor="wallet" className="w-32">
+                        Wallet Address
+                      </Label>
+                      <Field
+                        as={Input}
+                        name="wallet"
+                        id="wallet"
+                        type="text"
+                        placeholder="Wallet Address (0x..)"
+                        className="w-full focus-visible:ring-0"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <Field
-                  as={Input}
-                  name="wallet"
-                  id="wallet"
-                  type="text"
-                  placeholder="Wallet Address (0x..)"
-                  className="w-full focus-visible:ring-0"
-                />
-              </div>
-            </div>
 
-            <Button
-              className="bg-[#81B29A] hover:bg-[#81B29A] w-full mt-6"
-              type="submit"
-            >
-              Add Member
-            </Button>
-          </Form>
+                {gaslessTransactionLoading ? (
+                  <Button disabled>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Please wait
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    className="bg-[#81B29A] hover:bg-[#81B29A] w-full mt-6"
+                    disabled={
+                      membersArray &&
+                      membersArray.find(
+                        (item: any) => item.address === results[0]
+                      )
+                    }
+                  >
+                    {membersArray &&
+                    membersArray.find(
+                      (item: any) => item.address === results[0]
+                    )
+                      ? "Already a Member"
+                      : "Add Member"}
+                  </Button>
+                )}
+              </Form>
+            )}
+          </Formik>
         )}
-      </Formik>
     </div>
   );
 };
