@@ -88,26 +88,31 @@ const generationConfig = {
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 app.post("/gemini", async (req, res) => {
-  console.log(req.body.message);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-latest",
-    systemInstruction: system_instruction,
-  });
-  // console.log(req.body.history);
-  const chat = model.startChat({
-    generationConfig,
-    safetySettings,
-    history: req.body.history, //req.body.history,
-    stream: false,
-  });
+  try {
 
-  const msg = req.body.message;
+    console.log(req.body.message);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-pro-latest",
+      systemInstruction: system_instruction,
+    });
+    // console.log(req.body.history);
+    const chat = model.startChat({
+      generationConfig,
+      safetySettings,
+      history: req.body.history, //req.body.history,
+      stream: false,
+    });
 
-  const result = await chat.sendMessage(msg);
-  const response = result.response;
-  const text = response.text();
-  console.log(text);
-  res.send(text);
+    const msg = req.body.message;
+
+    const result = await chat.sendMessage(msg);
+    const response = result.response;
+    const text = response.text();
+    console.log(text);
+    res.send(text);
+  } catch (err) {
+    res.send(err);
+  }
   // const jsonvar = convertStringToJSON(text);
   // res.json(jsonvar);
 });
