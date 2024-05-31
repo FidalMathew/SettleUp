@@ -49,6 +49,7 @@ interface ContractFunctionContextProps {
     token: string,
     callDataArray: any
   ) => Promise<void>;
+  performBatchTransactionLoading?: boolean;
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
@@ -78,6 +79,8 @@ const ContractFunctionContext = createContext<ContractFunctionContextProps>({
   createCallData: (functionName: string, args: any) => new Promise(() => {}),
   performBatchTransaction: (token: string, callDataArray: any) =>
     new Promise(() => {}),
+
+  performBatchTransactionLoading: false,
 });
 
 export default function ContractFunctionContextProvider({
@@ -146,7 +149,11 @@ export default function ContractFunctionContextProvider({
     return data;
   };
 
+  const [performBatchTransactionLoading, setPerformBatchTransactionLoading] =
+    useState(false);
+
   const performBatchTransaction = async (token: string, callDataArray: any) => {
+    setPerformBatchTransactionLoading(true);
     try {
       console.log(callDataArray, "callDataArray", token, "token");
       // const createGroupCalldata = encodeFunctionData({
@@ -203,7 +210,11 @@ export default function ContractFunctionContextProvider({
         [],
       ]);
       console.log(batchAll, "batchAll");
-    } catch (err) {}
+    } catch (err) {
+      console.log(err, "error in batch transaction");
+    } finally {
+      setPerformBatchTransactionLoading(false);
+    }
   };
 
   const gaslessTransaction = async (functionName: string, args: any) => {
@@ -627,6 +638,7 @@ export default function ContractFunctionContextProvider({
         getAllDebts,
         getAllDebtsOfMember,
         createCallData,
+        performBatchTransactionLoading,
       }}
     >
       {children}

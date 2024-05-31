@@ -82,6 +82,7 @@ export default function Groups() {
     getAllDebtsOfMember,
     createCallData,
     fetchNameAndAvatar,
+    performBatchTransactionLoading,
   } = useContractFunctionContextHook();
 
   // modal states
@@ -463,6 +464,8 @@ export default function Groups() {
 
         const res = await performBatchTransaction("LINK", callDataArray);
         console.log(res, "res");
+
+        toast("Dues paid successfully");
       }
     } catch (error) {
       console.error("Error paying dues:", error);
@@ -1206,7 +1209,7 @@ export default function Groups() {
               Clear Dues
             </ResponsiveDialogComponentTitle>
             <ResponsiveDialogComponentDescription className="pt-6">
-              {batchingLoading ? (
+              {performBatchTransactionLoading ? (
                 <div className="flex items-center justify-center flex-col mb-5">
                   <img src="/batching.gif" alt="loader" className="h-32 w-32" />
                   <p className="text-lg font-semibold text-center">
@@ -1312,89 +1315,109 @@ export default function Groups() {
                           </Carousel>
 
                           <p className="ml-2">Select Users to Pay</p>
-                          <div className="flex flex-col gap-4">
-                            <Carousel
-                              opts={{
-                                align: "start",
-                              }}
-                              className="w-full"
-                            >
-                              <CarouselContent className="w-full">
-                                {membersDuesArray &&
-                                  membersDuesArray.length > 0 &&
-                                  membersDuesArray.map(
-                                    (item: any, index: number) => (
-                                      <CarouselItem
-                                        className="basis-1/3"
-                                        key={index}
-                                      >
-                                        <div className="flex flex-col gap-1">
-                                          <Checkbox
-                                            className="peer sr-only"
-                                            id={`membersDuesArray${index + 1}`}
-                                            checked={
-                                              membersDuesArray[index] &&
-                                              membersDuesArray[index].isChecked
-                                            }
-                                            name={`membersDuesArray[${index}].isChecked`}
-                                            onCheckedChange={(
-                                              checked: boolean
-                                            ) => {
-                                              setMembersDuesArray(
-                                                (prev: any) => {
-                                                  const newArray = [...prev];
-                                                  newArray[index].isChecked =
-                                                    checked;
-
-                                                  // substract the dueRemaining amount with the value which is checked
-
-                                                  if (checked) {
-                                                    setDueRemaining(
-                                                      dueRemaining -
-                                                        newArray[index].amount
-                                                    );
-                                                  }
-
-                                                  if (!checked) {
-                                                    setDueRemaining(
-                                                      dueRemaining +
-                                                        newArray[index].amount
-                                                    );
-                                                  }
-                                                  formik.setFieldValue(
-                                                    "membersDuesArray",
-                                                    newArray
-                                                  );
-                                                  return newArray;
-                                                }
-                                              );
-                                            }}
-                                          />
-                                          <Label
-                                            htmlFor={`membersDuesArray${
-                                              index + 1
-                                            }`}
-                                            className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
-                                          >
-                                            <img
-                                              src={
-                                                membersDuesAvatarArray[index][1]
+                          {membersDuesArray &&
+                            membersDuesArray.length === 0 && (
+                              <div className="h-[100px] grid place-content-center">
+                                <p className="text-center text-sm text-gray-500 ">
+                                  No dues to pay
+                                </p>
+                              </div>
+                            )}
+                          {membersDuesArray && membersDuesArray.length > 0 && (
+                            <div className="flex flex-col gap-4">
+                              <Carousel
+                                opts={{
+                                  align: "start",
+                                }}
+                                className="w-full"
+                              >
+                                <CarouselContent className="w-full">
+                                  {membersDuesArray &&
+                                    membersDuesArray.length > 0 &&
+                                    membersDuesArray.map(
+                                      (item: any, index: number) => (
+                                        <CarouselItem
+                                          className="basis-1/3"
+                                          key={index}
+                                        >
+                                          <div className="flex flex-col gap-1">
+                                            <Checkbox
+                                              className="peer sr-only"
+                                              id={`membersDuesArray${
+                                                index + 1
+                                              }`}
+                                              checked={
+                                                membersDuesArray[index] &&
+                                                membersDuesArray[index]
+                                                  .isChecked
                                               }
-                                              alt="man"
-                                              className="mb-3 h-8  w-8 "
+                                              name={`membersDuesArray[${index}].isChecked`}
+                                              onCheckedChange={(
+                                                checked: boolean
+                                              ) => {
+                                                setMembersDuesArray(
+                                                  (prev: any) => {
+                                                    const newArray = [...prev];
+                                                    newArray[index].isChecked =
+                                                      checked;
+
+                                                    // substract the dueRemaining amount with the value which is checked
+
+                                                    if (checked) {
+                                                      setDueRemaining(
+                                                        dueRemaining -
+                                                          newArray[index].amount
+                                                      );
+                                                    }
+
+                                                    if (!checked) {
+                                                      setDueRemaining(
+                                                        dueRemaining +
+                                                          newArray[index].amount
+                                                      );
+                                                    }
+                                                    formik.setFieldValue(
+                                                      "membersDuesArray",
+                                                      newArray
+                                                    );
+                                                    return newArray;
+                                                  }
+                                                );
+                                              }}
                                             />
-                                            <div className="flex flex-col items-center gap-2">
-                                              <p>{item.name}</p>
-                                              <p>{item.amount} USD</p>
-                                            </div>
-                                          </Label>
-                                        </div>
-                                      </CarouselItem>
-                                    )
-                                  )}
-                              </CarouselContent>
-                            </Carousel>
-                          </div>
+                                            <Label
+                                              htmlFor={`membersDuesArray${
+                                                index + 1
+                                              }`}
+                                              className="flex md:w-[110%] flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-[#81B29A] [&:has([data-state=checked])]:border-[#81B29A]"
+                                            >
+                                              <img
+                                                src={
+                                                  membersDuesAvatarArray &&
+                                                  membersDuesAvatarArray[
+                                                    index
+                                                  ] &&
+                                                  membersDuesAvatarArray[
+                                                    index
+                                                  ][1]
+                                                }
+                                                alt="man"
+                                                className="mb-3 h-8  w-8 "
+                                              />
+                                              <div className="flex flex-col items-center gap-2">
+                                                <p>{item.name}</p>
+                                                <p>{item.amount} USD</p>
+                                              </div>
+                                            </Label>
+                                          </div>
+                                        </CarouselItem>
+                                      )
+                                    )}
+                                </CarouselContent>
+                              </Carousel>
+                            </div>
+                          )}
+
                           <Button
                             className="bg-[#81B29A] hover:bg-[#81B29A] w-full"
                             type="submit"
