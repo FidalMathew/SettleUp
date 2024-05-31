@@ -399,8 +399,6 @@ export default function Groups() {
     }
   };
 
-  const [batchingLoading, setBatchingLoading] = useState(false);
-
   const tokenPrices = useMemo(
     () => [
       {
@@ -434,33 +432,42 @@ export default function Groups() {
     setTokenPricesArray(newTokenPriceArray);
   }, [tokenPrices]);
 
+  const [batchingLoading, setBatchingLoading] = useState(false);
+
   const handlePayDue = async (values: any) => {
-    let tokenValue = 0;
+    setBatchingLoading(true);
+    try {
+      let tokenValue = 0;
 
-    let callDataArray: any = [];
-    console.log(values, "values -- batch");
+      let callDataArray: any = [];
+      console.log(values, "values -- batch");
 
-    if (createCallData && performBatchTransaction) {
-      const arr = values.membersDuesArray.map(async (item: any) => {
-        const callData = await createCallData("payDebt", [
-          groupId,
-          item.address,
-          tokenValue,
-        ]);
-        console.log(callData, "callData-pay");
-        return callData;
-      });
+      if (createCallData && performBatchTransaction) {
+        const arr = values.membersDuesArray.map(async (item: any) => {
+          const callData = await createCallData("payDebt", [
+            groupId,
+            item.address,
+            tokenValue,
+          ]);
+          console.log(callData, "callData-pay");
+          return callData;
+        });
 
-      const resolvedCallDataArray = await Promise.all(arr);
+        const resolvedCallDataArray = await Promise.all(arr);
 
-      resolvedCallDataArray.forEach((callData) => {
-        callDataArray.push(callData);
-      });
+        resolvedCallDataArray.forEach((callData) => {
+          callDataArray.push(callData);
+        });
 
-      console.log(callDataArray, "callDataArray----");
+        console.log(callDataArray, "callDataArray----");
 
-      const res = performBatchTransaction("LINK", callDataArray);
-      console.log(res, "res");
+        const res = await performBatchTransaction("LINK", callDataArray);
+        console.log(res, "res");
+      }
+    } catch (error) {
+      console.error("Error paying dues:", error);
+    } finally {
+      setBatchingLoading(false);
     }
   };
 
@@ -478,17 +485,32 @@ export default function Groups() {
   const debouncedFetchResults = useCallback(
     debounce(async (searchQuery: string) => {
       try {
+        console.log("Search query received:", searchQuery);
+
         if (searchQuery === "") {
           setResults([]);
           return;
         }
-        if (searchQuery !== "" && fetchAddress && fetchNameAndAvatar) {
-          const response = await fetchAddress(searchQuery);
-          const res = await fetchNameAndAvatar(response);
-          const arr = [response, res];
 
-          console.log(arr, "response1");
-          setResults(arr);
+        if (fetchAddress && fetchNameAndAvatar) {
+          console.log("Fetching address for query:", searchQuery);
+
+          const response = await fetchAddress(searchQuery);
+          console.log("Address response:", response);
+
+          if (response) {
+            console.log("Fetching name and avatar for response:", response);
+            const res = await fetchNameAndAvatar(response);
+            console.log("Name and Avatar response:", res);
+
+            const arr = [response, res];
+            console.log("Final result array:", arr);
+
+            setResults(arr);
+          } else {
+            console.warn("No response from fetchAddress");
+            setResults([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching search results:", error);
@@ -497,9 +519,9 @@ export default function Groups() {
         setQueryLoading(false);
       }
 
-      console.log(searchQuery, "searchQuery");
+      console.log("Search query processed:", searchQuery);
     }, 500),
-    []
+    [fetchAddress, fetchNameAndAvatar]
   );
 
   const handleInputChange = (e: any, formik: any) => {
@@ -1079,7 +1101,7 @@ export default function Groups() {
             <ResponsiveDialogComponentTitle>
               Add Group Member
             </ResponsiveDialogComponentTitle>
-            <ResponsiveDialogComponentDescription className="h-[100px] flex items-center w-full">
+            <ResponsiveDialogComponentDescription className="h-[300px] md:h-[200px] flex w-full">
               <Formik
                 initialValues={{
                   name: "",
@@ -1142,8 +1164,20 @@ export default function Groups() {
                                     onClick={() =>
                                       handleAddGroupMember(results[0])
                                     }
+                                    disabled={
+                                      MembersArray &&
+                                      MembersArray.find(
+                                        (item: any) =>
+                                          item.address === results[0]
+                                      )
+                                    }
                                   >
-                                    Add
+                                    {MembersArray &&
+                                    MembersArray.find(
+                                      (item: any) => item.address === results[0]
+                                    )
+                                      ? "Already a Member"
+                                      : "Add"}
                                   </Button>
                                 )}
                               </div>
