@@ -143,11 +143,12 @@ export default function Dashboard() {
 
   // const {ready, user, logout} = usePrivy();
   const {ready, wallets} = useWallets();
+  console.log(ready, wallets, "wallets");
   useEffect(() => {
-    if (ready && !wallets[0]) {
+    if (ready && wallets.length === 0) {
       router.push("/");
     }
-  }, [wallets]);
+  }, [wallets, ready]);
 
   useEffect(() => {
     console.log(groups, "--groups--");

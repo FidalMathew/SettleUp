@@ -98,7 +98,7 @@ export default function ContractFunctionContextProvider({
         await wallets[0].switchChain(1287 as `0x${string}` | number);
       }
     })();
-  }, []);
+  }, [wallets]);
 
   useEffect(() => {
     if (wallets[0]) {

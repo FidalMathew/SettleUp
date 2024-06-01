@@ -240,7 +240,12 @@ export default function Home() {
         )}
       </div>
 
-      <div className="lg:min-h-screen h-fit bg-[#E07A5F] w-full flex items-center flex-col lg:flex-row lg:pl-20 px-10 text-center lg:text-left">
+      <div
+        className="lg:h-screen h-fit bg-[#E07A5F] w-full flex items-center flex-col lg:flex-row lg:pl-20 px-10 text-center lg:text-left"
+        style={{
+          height: "calc(100vh - 80px)",
+        }}
+      >
         <div className="flex flex-col gap-5 text-white justify-start lg:items-start items-center mt-20 text-7xl font-Poppins font-semibold lg:-translate-y-[100px] lg:translate-x-[10px]">
           <p className="">Share your expenses!</p>
           <p className="text-4xl">With the lowest Gas Fees possible!</p>
