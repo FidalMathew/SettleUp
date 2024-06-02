@@ -1,5 +1,5 @@
-import {EIP1193Provider, useWallets} from "@privy-io/react-auth";
-import {createContext, ReactNode, useContext, useEffect, useState} from "react";
+import { EIP1193Provider, useWallets } from "@privy-io/react-auth";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import {
   createPublicClient,
   createWalletClient,
@@ -8,15 +8,15 @@ import {
   http,
   WalletClient,
 } from "viem";
-import {moonbaseAlpha} from "viem/chains";
-import {settleUpABI} from "@/lib/abi/settleUpAbi";
-import {batchABI} from "@/lib/abi/batchABI";
-import {gaslessABI} from "@/lib/abi/gaslessABI";
-import {tokenABI} from "@/lib/abi/tokenAbi";
-import {getContract} from "viem";
-import {privateKeyToAccount} from "viem/accounts";
-import {ethers} from "ethers";
-import {toast} from "sonner";
+import { moonbaseAlpha } from "viem/chains";
+import { settleUpABI } from "@/lib/abi/settleUpAbi";
+import { batchABI } from "@/lib/abi/batchAbi";
+import { gaslessABI } from "@/lib/abi/gaslessAbi";
+import { tokenABI } from "@/lib/abi/tokenAbi";
+import { getContract } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { ethers } from "ethers";
+import { toast } from "sonner";
 import axios from "axios";
 
 interface ContractFunctionContextProps {
@@ -53,32 +53,32 @@ interface ContractFunctionContextProps {
 }
 
 const ContractFunctionContext = createContext<ContractFunctionContextProps>({
-  getContractInstance: () => new Promise(() => {}),
+  getContractInstance: () => new Promise(() => { }),
   gaslessTransaction: (functionName: string, args: any) =>
-    new Promise(() => {}),
+    new Promise(() => { }),
   groups: [],
   totalCredit: 0,
   totalDebt: 0,
-  fetchName: (address: string) => new Promise(() => {}),
-  fetchNameAndAvatar: (address: string) => new Promise(() => {}),
-  fetchAddress: (name: string) => new Promise(() => {}),
-  getGroupMembers: (groupId: number) => new Promise(() => {}),
-  viewAllExpensesOfGroup: (groupId: number) => new Promise(() => {}),
-  getGroupSpending: (groupId: number) => new Promise(() => {}),
+  fetchName: (address: string) => new Promise(() => { }),
+  fetchNameAndAvatar: (address: string) => new Promise(() => { }),
+  fetchAddress: (name: string) => new Promise(() => { }),
+  getGroupMembers: (groupId: number) => new Promise(() => { }),
+  viewAllExpensesOfGroup: (groupId: number) => new Promise(() => { }),
+  getGroupSpending: (groupId: number) => new Promise(() => { }),
   getDebt: (groupId: number, debtor: string, creditor: string) =>
-    new Promise(() => {}),
+    new Promise(() => { }),
   payDebt: (groupId: number, creditor: string, token: number) =>
-    new Promise(() => {}),
+    new Promise(() => { }),
   getAmountRemainingToBePaid: (account: string, groupId: number) =>
-    new Promise(() => {}),
+    new Promise(() => { }),
   getAmountRemainingToBeReceived: (account: string, groupId: number) =>
-    new Promise(() => {}),
+    new Promise(() => { }),
   LinkTokenPrice: 0,
-  getAllDebts: (groupId: number) => new Promise(() => {}),
-  getAllDebtsOfMember: (groupId: number) => new Promise(() => {}),
-  createCallData: (functionName: string, args: any) => new Promise(() => {}),
+  getAllDebts: (groupId: number) => new Promise(() => { }),
+  getAllDebtsOfMember: (groupId: number) => new Promise(() => { }),
+  createCallData: (functionName: string, args: any) => new Promise(() => { }),
   performBatchTransaction: (token: string, callDataArray: any) =>
-    new Promise(() => {}),
+    new Promise(() => { }),
 
   performBatchTransactionLoading: false,
 });
@@ -89,7 +89,7 @@ export default function ContractFunctionContextProvider({
   children: ReactNode;
 }) {
   const CONTRACT_ADDRESS = "0x1e383F71e84c6Feda9A78e09593D77593DbF8cAe";
-  const {wallets} = useWallets();
+  const { wallets } = useWallets();
   const [provider, setProvider] = useState<EIP1193Provider>();
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function ContractFunctionContextProvider({
         // 1a. Insert a single client
         // client: publicClient,
         // 1b. Or public and/or wallet clients
-        client: {public: publicClient, wallet: walletClient},
+        client: { public: publicClient, wallet: walletClient },
       });
 
       console.log(contract, "contract instance");
@@ -226,13 +226,13 @@ export default function ContractFunctionContextProvider({
 
       const types = {
         CallPermit: [
-          {name: "from", type: "address"},
-          {name: "to", type: "address"},
-          {name: "value", type: "uint256"},
-          {name: "data", type: "bytes"},
-          {name: "gaslimit", type: "uint64"},
-          {name: "nonce", type: "uint256"},
-          {name: "deadline", type: "uint256"},
+          { name: "from", type: "address" },
+          { name: "to", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "data", type: "bytes" },
+          { name: "gaslimit", type: "uint64" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
         ],
       };
 
@@ -591,7 +591,7 @@ export default function ContractFunctionContextProvider({
 
     async function tokenPrice() {
       try {
-        const {data} = await axios.get(
+        const { data } = await axios.get(
           `https://api.chainbase.online/v1/token/price?chain_id=${network_id}&contract_address=${token_addr}`,
           {
             headers: {
